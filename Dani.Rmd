@@ -1,0 +1,39 @@
+---
+title: "EDA"
+author: "Dani Trejo"
+date: "10/7/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Importing Data and Load Packages
+```{r}
+library(tidyverse)
+library(broom)
+library(knitr)
+
+train_data<-read.csv("data-train.csv")
+test_data<-read.csv("data-test.csv")
+```
+
+
+## Reynolds number ($Re$)
+
+The Reynolds number quantifies fluid turbulence.
+```{r}
+
+```
+
+## Gravitational Acceleration ($Fr$)
+```{r}
+
+```
+
+
+## Particle characteristic St
+```{r}
+
+```
