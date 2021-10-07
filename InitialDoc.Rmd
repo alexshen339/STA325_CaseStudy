@@ -1,0 +1,37 @@
+---
+title: "InitialDoc"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(mgcv)
+test_data <- read.csv("data-test.csv")
+train_data <- read.csv("data-train.csv")
+
+```
+
+
+```{r}
+train_data
+train_data <- train_data %>% 
+  mutate(Fr = as.factor(Fr)) %>% 
+  mutate(Re = as.factor(Re))
+
+train_data
+lm1 <- lm(R_moment_1 ~ St + Re + Fr, data = train_data)
+summary(lm1)
+plot(lm1)
+gam1 <- gam(R_moment_1 ~ s(St) + Re + Fr, data = train_data)
+
+
+summary(gam1)
+plot.gam(gam1, residuals = TRUE)
+gam.check(gam1)
+
+```
+
