@@ -1,0 +1,23 @@
+---
+title: "sara-experimental"
+author: "Sara Shao"
+date: "10/7/2021"
+output: pdf_document
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+train <- read.csv('data-train.csv')
+```
+```{r}
+train
+```
+```{r}
+ggplot(data = train, mapping = aes(x = Re, y = R_moment_1)) +
+  geom_point()
+```
+
