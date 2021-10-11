@@ -33,5 +33,12 @@ summary(gam1)
 plot.gam(gam1, residuals = TRUE)
 gam.check(gam1)
 
+gam2 <- gam(R_moment_1 ~ s(St, by = Fr) + Re + Fr, data = train_data)
+gam.check(gam2)
+summary(gam2)
+
+gam3 <- gam(R_moment_1 ~ s(St, by = Re) + Re + Fr, data = train_data)
+gam.check(gam3)
+summary(gam3)
 ```
 
