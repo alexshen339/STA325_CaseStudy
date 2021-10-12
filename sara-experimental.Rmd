@@ -9,15 +9,56 @@ output: pdf_document
 library(tidyverse)
 ```
 
-
 ```{r}
 train <- read.csv('data-train.csv')
 ```
+
 ```{r}
 train
 ```
 ```{r}
+ggplot(data = train, mapping = aes(x = St)) +
+  geom_histogram()
+```
+
+```{r}
 ggplot(data = train, mapping = aes(x = Re, y = R_moment_1)) +
   geom_point()
+```
+
+```{r}
+ggplot(data = train, mapping = aes(x = Re, y = R_moment_2, color = factor(Fr))) +
+  geom_point()
+```
+
+```{r}
+ggplot(data = train, mapping = aes(x = St, y = R_moment_1, color = factor(Fr))) +
+  geom_point() +
+  geom_smooth(method = lm, se = F)
+```
+
+```{r}
+train_data <- train %>% 
+  mutate(Fr = as.factor(Fr)) %>% 
+  mutate(Re = as.factor(Re))
+
+lm1 <- lm(log(R_moment_1) ~ log(St) + Re + Fr + St*Fr + Re*Fr, data = train_data)
+summary(lm1)
+
+lm2 <- lm(log(R_moment_2) ~ log(St) + Re + Fr + St*Fr + Re*Fr, data = train_data)
+summary(lm2)
+
+lm3 <- lm(log(R_moment_3) ~ log(St) + Re + Fr + St*Fr + Re*Fr, data = train_data)
+summary(lm3)
+
+lm4 <- lm(log(R_moment_4) ~ log(St) + Re + Fr + St*Fr + Re*Fr, data = train_data)
+summary(lm4)
+```
+```{r}
+plot(lm1)
+```
+
+```{r}
+
 ```
 
