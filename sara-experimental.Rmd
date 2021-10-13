@@ -39,8 +39,8 @@ ggplot(data = train, mapping = aes(x = St, y = R_moment_1, color = factor(Fr))) 
 
 ```{r}
 train_data <- train %>% 
-  mutate(Fr = as.factor(Fr)) %>% 
-  mutate(Re = as.factor(Re))
+  mutate(Fr = as.ordered(Fr)) %>% 
+  mutate(Re = as.ordered(Re))
 ```
 
 ```{r}
