@@ -15,7 +15,56 @@ Our key research objectives and how our model achieves such objectives
 Our key research objectives include understanding and predicting how turbulence affects the dynamics of water droplets and ice crystals (how they collide and mix) in clouds and inferring the distribution of the volume of a cluster within clouds.
 To do this, we began by doing some basic Exploratory Data Analysis on the three input 
 
+```{r}
+train <- read.csv('data-train.csv')
+```
+
+EDA SHOWS INTERACTION EFFECTS
+
+```{r}
+ggplot(data = train, mapping = aes(x = St, y = R_moment_1)) +
+  geom_point()
+ggplot(data = train, mapping = aes(x = St, y = R_moment_2)) +
+  geom_point()
+ggplot(data = train, mapping = aes(x = St, y = R_moment_3)) +
+  geom_point()
+ggplot(data = train, mapping = aes(x = St, y = R_moment_4)) +
+  geom_point()
+```
+```{r}
+ggplot(data = train, mapping = aes(x = Re, y = R_moment_1, color = factor(Fr))) +
+  geom_point()
+```
+
+```{r}
+ggplot(data = train, mapping = aes(x = Re, y = R_moment_2, color = factor(Fr))) +
+  geom_point()
+```
+```{r}
+ggplot(data = train, mapping = aes(x = Re, y = R_moment_3, color = factor(Fr))) +
+  geom_point()
+```
+```{r}
+ggplot(data = train, mapping = aes(x = Re, y = R_moment_4, color = factor(Fr))) +
+  geom_point()
+```
+
+BAD LINEAR MODEL SHOWS TRANSFORMATIONS NEEDED AND GAM MIGHT BE A GOOD IDEA
+```{r}
+train_data <- train %>% 
+  mutate(Fr = as.factor(Fr)) %>% 
+  mutate(Re = as.factor(Re))
+
+simplest_lm <- lm(log(R_moment_1) ~ St + Re + Fr, data = train_data)
+plot(simplest_lm)
+```
+We decided to initially fit the most basic linear model to see what it would look like. We see that there may be an issue with heteroskedasticity in the residuals vs fitted values plot. In addition, looking at the Normal Q-Q plot, the normality assumption also seems to be violated. This information, combined with the seemingly nonlinear relationship between our only continuous predictor St and the 4 moments as seen in the EDA, leads us to try to use a GAM to model the relationship between the predictors and the 4 moments due to the increased flexbility GAMs provide.
+
+
 ## Methodology
+We knew that using GAMs made interpretability an issue, because interpreting a complex smooth function of a continuous predictor is very hard. As a result, we decided to use variable transformations and interaction effects to make linear models with suitable model diagnostics for all 4 moments for the purpose of inference, but we would also compare these models with 4 GAM models (one for each moment) in order to find the best models for prediction. 
+
+
 
 ## Results
 
