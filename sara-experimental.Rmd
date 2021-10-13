@@ -73,61 +73,88 @@ plot(lm3)
 ```
 
 ```{r warning = FALSE}
-set.seed(123)
-errors <- c()
+set.seed(21)
+shuffled_train <- train_data[sample(nrow(train_data)),]
+folds <- cut(seq(1,nrow(train_data)),breaks=10,labels=FALSE)
 
-for(i in c(1:nrow(train_data))){
-  subset <- train_data[-c(i),]
-  model <- lm(log(R_moment_1) ~ log(St) + Re + Fr + St*Fr + Re*Fr + St*Re, data = subset)
-  prediction <- exp(predict(model, train_data[c(i),]))
-  error <- (train_data[c(i),]$R_moment_1 - prediction)^2
-  errors[i] <- error
+# error
+rmse.cv.lm <- rep(0, 10)
+
+# Cross validation
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_1
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    lm_cv <- lm(log(R_moment_1) ~ log(St) + Re + Fr + St*Fr + Re*Fr + St*Re, data = trainData)
+    pred_lm <- exp(predict(lm_cv, testData, type='response'))
+    rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(errors)
+mean(rmse.cv.lm)
 ```
 ```{r warning = FALSE}
-set.seed(123)
-errors <- c()
+# error
+rmse.cv.lm <- rep(0, 10)
 
-for(i in c(1:nrow(train_data))){
-  subset <- train_data[-c(i),]
-  model <- lm(log(R_moment_2) ~ log(St) + Re + Fr + St*Fr + Re*Fr + St*Re, data = subset)
-  prediction <- exp(predict(model, train_data[c(i),]))
-  error <- (train_data[c(i),]$R_moment_2 - prediction)^2
-  errors[i] <- error
+# Cross validation
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_2
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    lm_cv <- lm(log(R_moment_2) ~ log(St) + Re + Fr + St*Fr + Re*Fr + St*Re, data = trainData)
+    pred_lm <- exp(predict(lm_cv, testData, type='response'))
+    rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(errors)
+mean(rmse.cv.lm)
 ```
 
 ```{r warning = FALSE}
-set.seed(123)
-errors <- c()
+# error
+rmse.cv.lm <- rep(0, 10)
 
-for(i in c(1:nrow(train_data))){
-  subset <- train_data[-c(i),]
-  model <- lm(log(R_moment_3) ~ log(St) + Re + Fr + St*Fr + Re*Fr + St*Re, data = subset)
-  prediction <- exp(predict(model, train_data[c(i),]))
-  error <- (train_data[c(i),]$R_moment_3 - prediction)^2
-  errors[i] <- error
+# Cross validation
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_3
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    lm_cv <- lm(log(R_moment_3) ~ log(St) + Re + Fr + St*Fr + Re*Fr + St*Re, data = trainData)
+    pred_lm <- exp(predict(lm_cv, testData, type='response'))
+    rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(errors)
+mean(rmse.cv.lm)
 ```
 
 ```{r warning = FALSE}
-set.seed(123)
-errors <- c()
+# error
+rmse.cv.lm <- rep(0, 10)
 
-for(i in c(1:nrow(train_data))){
-  subset <- train_data[-c(i),]
-  model <- lm(log(R_moment_4) ~ log(St) + Re + Fr + St*Fr + Re*Fr + St*Re, data = subset)
-  prediction <- exp(predict(model, train_data[c(i),]))
-  error <- (train_data[c(i),]$R_moment_4 - prediction)^2
-  errors[i] <- error
+# Cross validation
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_4
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    lm_cv <- lm(log(R_moment_4) ~ log(St) + Re + Fr + St*Fr + Re*Fr + St*Re, data = trainData)
+    pred_lm <- exp(predict(lm_cv, testData, type='response'))
+    rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(errors)
+mean(rmse.cv.lm)
 ```
-
