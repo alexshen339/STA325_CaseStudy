@@ -1,0 +1,24 @@
+---
+title: "Final Report"
+author: "Conner Byrd, Eric Han, Ky Hyun, Sara Shao, Alex Shen, Mona Su, Dani Trejo, Steven Yuan"
+date: "10/12/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introduction
+Our key research objectives and how our model achieves such objectives
+
+Our key research objectives include understanding and predicting how turbulence affects the dynamics of water droplets and ice crystals (how they collide and mix) in clouds and inferring the distribution of the volume of a cluster within clouds.
+To do this, we began by doing some basic Exploratory Data Analysis on the three input 
+
+## Methodology
+
+## Results
+
+## Appendix
+
+### Graph 1.1
