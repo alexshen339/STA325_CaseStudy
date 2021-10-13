@@ -14,7 +14,7 @@ train <- read.csv('data-train.csv')
 ```
 
 ```{r}
-train
+head(train)
 ```
 ```{r}
 ggplot(data = train, mapping = aes(x = St)) +
@@ -22,12 +22,12 @@ ggplot(data = train, mapping = aes(x = St)) +
 ```
 
 ```{r}
-ggplot(data = train, mapping = aes(x = Re, y = R_moment_1)) +
+ggplot(data = train, mapping = aes(x = Re, y = R_moment_1, color = factor(Fr))) +
   geom_point()
 ```
 
 ```{r}
-ggplot(data = train, mapping = aes(x = Re, y = R_moment_2, color = factor(Fr))) +
+ggplot(data = train, mapping = aes(x = St, y = R_moment_4, color = factor(Fr))) +
   geom_point()
 ```
 
@@ -41,24 +41,93 @@ ggplot(data = train, mapping = aes(x = St, y = R_moment_1, color = factor(Fr))) 
 train_data <- train %>% 
   mutate(Fr = as.factor(Fr)) %>% 
   mutate(Re = as.factor(Re))
+```
 
-lm1 <- lm(log(R_moment_1) ~ log(St) + Re + Fr + St*Fr + Re*Fr, data = train_data)
+```{r}
+lm_R1 <- lm(R_moment_1 ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+lm_R2 <- lm(R_moment_2 ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+lm_R3 <- lm(R_moment_3 ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+lm_R4 <- lm(R_moment_4 ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+plot(lm_R1, 1)
+plot(lm_R2, 1)
+plot(lm_R3, 1)
+plot(lm_R4, 1)
+```
+
+
+```{r}
+lm1 <- lm(log(R_moment_1) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
 summary(lm1)
 
-lm2 <- lm(log(R_moment_2) ~ log(St) + Re + Fr + St*Fr + Re*Fr, data = train_data)
+lm2 <- lm(log(R_moment_2) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
 summary(lm2)
 
-lm3 <- lm(log(R_moment_3) ~ log(St) + Re + Fr + St*Fr + Re*Fr, data = train_data)
+lm3 <- lm(log(R_moment_3) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
 summary(lm3)
 
-lm4 <- lm(log(R_moment_4) ~ log(St) + Re + Fr + St*Fr + Re*Fr, data = train_data)
+lm4 <- lm(log(R_moment_4) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
 summary(lm4)
 ```
 ```{r}
-plot(lm1)
+plot(lm3)
 ```
 
-```{r}
+```{r warning = FALSE}
+set.seed(123)
+errors <- c()
 
+for(i in c(1:nrow(train_data))){
+  subset <- train_data[-c(i),]
+  model <- lm(log(R_moment_1) ~ log(St) + Re + Fr + St*Fr + Re*Fr + St*Re, data = subset)
+  prediction <- exp(predict(model, train_data[c(i),]))
+  error <- (train_data[c(i),]$R_moment_1 - prediction)^2
+  errors[i] <- error
+}
+
+mean(errors)
+```
+```{r warning = FALSE}
+set.seed(123)
+errors <- c()
+
+for(i in c(1:nrow(train_data))){
+  subset <- train_data[-c(i),]
+  model <- lm(log(R_moment_2) ~ log(St) + Re + Fr + St*Fr + Re*Fr + St*Re, data = subset)
+  prediction <- exp(predict(model, train_data[c(i),]))
+  error <- (train_data[c(i),]$R_moment_2 - prediction)^2
+  errors[i] <- error
+}
+
+mean(errors)
+```
+
+```{r warning = FALSE}
+set.seed(123)
+errors <- c()
+
+for(i in c(1:nrow(train_data))){
+  subset <- train_data[-c(i),]
+  model <- lm(log(R_moment_3) ~ log(St) + Re + Fr + St*Fr + Re*Fr + St*Re, data = subset)
+  prediction <- exp(predict(model, train_data[c(i),]))
+  error <- (train_data[c(i),]$R_moment_3 - prediction)^2
+  errors[i] <- error
+}
+
+mean(errors)
+```
+
+```{r warning = FALSE}
+set.seed(123)
+errors <- c()
+
+for(i in c(1:nrow(train_data))){
+  subset <- train_data[-c(i),]
+  model <- lm(log(R_moment_4) ~ log(St) + Re + Fr + St*Fr + Re*Fr + St*Re, data = subset)
+  prediction <- exp(predict(model, train_data[c(i),]))
+  error <- (train_data[c(i),]$R_moment_4 - prediction)^2
+  errors[i] <- error
+}
+
+mean(errors)
 ```
 
