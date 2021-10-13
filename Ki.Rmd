@@ -1,0 +1,43 @@
+---
+title: "Ki"
+author: "Ki Hyun"
+date: "10/12/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages, include=FALSE}
+library(MASS)
+library(tidyverse)
+```
+
+```{r box_cox_moment_1}
+model.1 <- lm(R_moment_1 ~ St + Re + Fr, data = train)
+
+bc.1 <- boxcox(R_moment_1 ~ St + Re + Fr, data = train)
+lambda.1 <- bc.1$x[which.max(bc.1$y)]
+```
+
+```{r box_cox_moment_2}
+model.2 <- lm(R_moment_2 ~ St + Re + Fr, data = train)
+
+bc.2 <- boxcox(R_moment_2 ~ St + Re + Fr, data = train)
+lambda.2 <- bc.2$x[which.max(bc.2$y)]
+```
+
+```{r box_cox_moment_3}
+model.3 <- lm(R_moment_3 ~ St + Re + Fr, data = train)
+
+bc.3 <- boxcox(R_moment_3 ~ St + Re + Fr, data = train)
+lambda.3 <- bc.3$x[which.max(bc.3$y)]
+```
+
+```{r box_cox_moment_4}
+model.4 <- lm(R_moment_4 ~ St + Re + Fr, data = train)
+
+bc.4 <- boxcox(R_moment_4 ~ St + Re + Fr, data = train)
+lambda.4 <- bc.4$x[which.max(bc.4$y)]
+```
