@@ -20,9 +20,9 @@ train_data <- read.csv("data-train.csv")
 
 ```{r}
 train_data <- train_data %>% 
-  mutate(Fr = as.factor(Fr)) %>% 
-  mutate(Re = as.factor(Re))
-
+  mutate(Fr = as.ordered(Fr)) %>% 
+  mutate(Re = as.ordered(Re))
+unique(train_data$Re)
 lm1 <- lm(R_moment_1 ~ St + Re + Fr, data = train_data)
 gam1 <- gam(R_moment_1 ~ s(St) + Re + Fr, data = train_data)
 
@@ -34,16 +34,19 @@ gam3 <- gam(R_moment_1 ~ s(St, by = Re) + Re + Fr, data = train_data)
 10-folds Cross validation skeleton code
 ```{r}
 # https://stats.stackexchange.com/questions/61090/how-to-split-a-data-set-to-do-10-fold-cross-validation
-set.seed(42)
+set.seed(21)
 # Randomly shuffle training data before splitting into 10 folds
 shuffled_train <- train_data[sample(nrow(train_data)),]
 
 # Create 10 folds
 folds <- cut(seq(1,nrow(train_data)),breaks=10,labels=FALSE)
+```
 
+CV for GAM & R-Moment1
+```{r}
 # error
-rmse.cv.gam <- rep(0, 10)
-
+rmse.cv.gam.inter <- rep(0, 10)
+rmse.cv.gam.simple <- rep(0, 10)
 # Cross validation: Use gam2 for example
 for(i in 1:10){
     #Segement your data by fold using the which() function 
@@ -53,13 +56,48 @@ for(i in 1:10){
     trainData <- shuffled_train[-testIndexes, ]
    
     #Use the test and train data
-    gam_cv <- gam(R_moment_1 ~ s(St, by = Fr) + Re + Fr, data = trainData)
-    pred_gam <- predict.gam(gam_cv, testData, type='response')
+    #1. gam model with interaction
+    gam_cv_inter <- gam(R_moment_1 ~ s(St, by = Fr) + Re + Fr, data = trainData)
+    pred_gam_inter <- predict.gam(gam_cv_inter, testData, type='response')
+    rmse.cv.gam.inter[i] = mean((pred_gam_inter - y.test)^2)
     
-    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+    #2. gam model without interaction
+    gam_cv_simple <- gam(R_moment_1 ~ St + Re + Fr, data = trainData)
+    pred_gam_simple <- predict.gam(gam_cv_simple, testData, type='response')
+    rmse.cv.gam.simple[i] = mean((pred_gam_simple - y.test)^2)
 }
 
-print(mean(rmse.cv.gam)) # Estimated test error of gam from 10-folds CV (can do similarly for lm by attaching lm prediction inside the for loop)
+print(mean(rmse.cv.gam.inter))
+print(mean(rmse.cv.gam.simple))
 ```
 
+
+CV for GAM & R-Moment2
+```{r}
+# error
+rmse.cv.gam.inter.2 <- rep(0, 10)
+rmse.cv.gam.simple.2 <- rep(0, 10)
+# Cross validation: Use gam2 for example
+for(i in 1:10){
+    #Segement your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_4
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    #1. gam model with interaction
+    gam_cv_inter_2 <- gam(R_moment_4 ~ s(St, by = Fr) + Re + Fr, data = trainData)
+    pred_gam_inter_2 <- predict.gam(gam_cv_inter_2, testData, type='response')
+    rmse.cv.gam.inter.2[i] = mean((pred_gam_inter_2 - y.test)^2)
+    
+    #2. gam model without interaction
+    gam_cv_simple_2 <- gam(R_moment_4 ~ St + Re + Fr, data = trainData)
+    pred_gam_simple_2 <- predict.gam(gam_cv_simple_2, testData, type='response')
+    rmse.cv.gam.simple.2[i] = mean((pred_gam_simple_2 - y.test)^2)
+}
+
+print(mean(rmse.cv.gam.inter.2))
+print(mean(rmse.cv.gam.simple.2))
+```
 
