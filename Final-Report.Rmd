@@ -46,11 +46,13 @@ train_data <- train %>%
 
 We decided at the beginning to treat Fr and Re as ordered factors. It makes sense to treat Fr as a categorical variable because we are given only three unique values, one of which is infinity, and in practice the three values are representative of different types of clouds. We decided to treat Re as a factored variable as well because we are also only given three unique values and because the differences between the three values are so large that it would be unwise to extrapolate our model to the ranges in between the values we are given. In terms of prediction and inference, we believe our models can still be generalized to Fr and Re values similar to the ones we are working with.
 
-```{r}
+```{r, echo = TRUE}
 first_lm_R1 <- lm(R_moment_1 ~ St + Re + Fr, data = train_data)
+first_lm_R2 <- lm(R_moment_2 ~ St + Re + Fr, data = train_data)
+first_lm_R3 <- lm(R_moment_3 ~ St + Re + Fr, data = train_data)
 first_lm_R4 <- lm(R_moment_4 ~ St + Re + Fr, data = train_data)
-summary(first_lm_R1)
-summary(first_lm_R4)
+summary(first_lm_R1)$r.squared
+summary(first_lm_R4)$r.squared
 ```
 
 We decided to initially fit the most basic linear model  with all three predictors to see what it would look like. The model for the first moment had a fairly high $R^2$ value (0.929), but the model for the fourth moment had a much lower $R^2$ value (0.425). Additionally, in our diagnostic plots (see Appendix: Section 2), we saw a pattern in the residuals vs fitted values plots where the models would consistently under predict in some areas and over predict in others, indicating non-linearity. In addition, looking at the Normal Q-Q plots, the normality assumption also seemed to be violated for higher moments. This is consistent with the fact that our histogram of St in our EDA was not normally distributed. 
@@ -64,18 +66,15 @@ As a result, we decided to use variable transformations and interaction effects 
 
 ### Final Linear Model
 
-```{r}
-lm1 <- lm(log(R_moment_1) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
-summary(lm1)
-
-lm2 <- lm(log(R_moment_2) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
-summary(lm2)
-
-lm3 <- lm(log(R_moment_3) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
-summary(lm3)
-
-lm4 <- lm(log(R_moment_4) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
-summary(lm4)
+```{r, echo = TRUE}
+(lm1 <- lm(log(R_moment_1) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data))
+summary(lm1)$r.squared
+(lm2 <- lm(log(R_moment_2) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data))
+summary(lm2)$r.squared
+(lm3 <- lm(log(R_moment_3) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data))
+summary(lm3)$r.squared
+(lm4 <- lm(log(R_moment_4) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data))
+summary(lm4)$r.squared
 ```
 
 A one percent increase in Stokes number is associated with 0.146% increase in R moment 1, holding all other predictors constant. When the Reynolds number is 224, the R moment 1 is expected to decrease by 403% from when the Reynolds number is 90, holding all other predictors constant. When the Reynolds number is 398, the R moment 1 is expected to increase by 64% compared to when the Reynolds number is 90. When the Reynolds number is 224 and the Froud number is 0.3, the R moment 1 is expected to be an additional 24% lower compared to when either of those conditions are not met.  
@@ -234,17 +233,17 @@ Because the linearity condition is not fulfilled in the above Residuals vs. Fitt
 
 ### Figure 2.5: Forward Selection With AIC On Linear Models
 
-```{r}
+```{r, echo = TRUE}
 lm1 <- lm(log(R_moment_1) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
-summary(step(lm1, direction = "forward"))
+step(lm1, direction = "forward")
 
 lm2 <- lm(log(R_moment_2) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
-summary(step(lm2, direction = "forward"))
+step(lm2, direction = "forward")
 
 lm3 <- lm(log(R_moment_3) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
-summary(step(lm3, direction = "forward"))
+step(lm3, direction = "forward")
 
 lm4 <- lm(log(R_moment_4) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
-summary(step(lm4, direction = "forward"))
+step(lm4, direction = "forward")
 ```
 
