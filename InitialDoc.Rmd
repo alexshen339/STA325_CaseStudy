@@ -14,17 +14,20 @@ library(tidyverse)
 library(mgcv)
 test_data <- read.csv("data-test.csv")
 train_data <- read.csv("data-train.csv")
-
+train_data %>% 
+  select(R_moment_4) %>% 
+  arrange(desc(R_moment_4))
 ```
 
 
 ```{r}
-train_data
 train_data <- train_data %>% 
-  mutate(Fr = as.factor(Fr)) %>% 
-  mutate(Re = as.factor(Re))
+  mutate(Fr = as.ordered(Fr)) %>% 
+  mutate(Re = as.ordered(Re))
+test_data <- test_data %>% 
+  mutate(Fr = as.ordered(Fr)) %>% 
+  mutate(Re = as.ordered(Re))
 
-train_data
 lm1 <- lm(R_moment_1 ~ St + Re + Fr, data = train_data)
 summary(lm1)
 plot(lm1)
@@ -42,5 +45,25 @@ summary(gam2)
 gam3 <- gam(R_moment_1 ~ s(St, by = Re) + Re + Fr, data = train_data)
 gam.check(gam3)
 summary(gam3)
+```
+
+```{r}
+lm1 <- lm(log(R_moment_1) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+
+lm2 <- lm(log(R_moment_2) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+
+lm3 <- lm(log(R_moment_3) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+
+lm4 <- lm(log(R_moment_4) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+
+pred_R_moment_1 <- exp(predict(lm1, test_data))
+pred_R_moment_2 <- exp(predict(lm2, test_data))
+pred_R_moment_3 <- exp(predict(lm3, test_data))
+pred_R_moment_4 <- exp(predict(lm4, test_data))
+test_data <- cbind(test_data, pred1)
+test_data <- cbind(test_data, pred2)
+test_data <- cbind(test_data, pred3)
+test_data <- cbind(test_data, pred4)
+write.csv(test_data, "data-test-pred.csv")
 ```
 
