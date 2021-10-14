@@ -15,29 +15,65 @@ library(tidyverse)
 ```
 
 ```{r box_cox_moment_1}
-model.1 <- lm(R_moment_1 ~ St + Re + Fr, data = train)
+model.1 <- lm(R_moment_1 ~ St + Re + Fr + St:Fr + Fr:Re + St:Re, 
+              data = train.t)
 
-bc.1 <- boxcox(R_moment_1 ~ St + Re + Fr, data = train)
+bc.1 <- boxcox(R_moment_1 ~ St + Re + Fr + St:Fr + Fr:Re + St:Re, 
+               data = train.t)
 lambda.1 <- bc.1$x[which.max(bc.1$y)]
 ```
 
 ```{r box_cox_moment_2}
-model.2 <- lm(R_moment_2 ~ St + Re + Fr, data = train)
+model.2 <- lm(R_moment_2 ~ St + Re + Fr + St:Fr + Fr:Re + St:Re, 
+              data = train.t)
 
-bc.2 <- boxcox(R_moment_2 ~ St + Re + Fr, data = train)
-lambda.2 <- bc.2$x[which.max(bc.2$y)]
+bc.2 <- boxcox(R_moment_2 ~ St + Re + Fr + St:Fr + Fr:Re + St:Re, 
+               data = train.t)
+lambda.2 <- bc.1$x[which.max(bc.2$y)]
 ```
 
 ```{r box_cox_moment_3}
-model.3 <- lm(R_moment_3 ~ St + Re + Fr, data = train)
+model.3 <- lm(R_moment_3 ~ St + Re + Fr + St:Fr + Fr:Re + St:Re, 
+              data = train.t)
 
-bc.3 <- boxcox(R_moment_3 ~ St + Re + Fr, data = train)
+bc.3 <- boxcox(R_moment_3 ~ St + Re + Fr + St:Fr + Fr:Re + St:Re, 
+               data = train.t)
+
 lambda.3 <- bc.3$x[which.max(bc.3$y)]
 ```
 
 ```{r box_cox_moment_4}
-model.4 <- lm(R_moment_4 ~ St + Re + Fr, data = train)
+model.4 <- lm(R_moment_4 ~ St + Re + Fr + St:Fr + Fr:Re + St:Re, 
+              data = train.t)
 
-bc.4 <- boxcox(R_moment_4 ~ St + Re + Fr, data = train)
-lambda.4 <- bc.4$x[which.max(bc.4$y)]
+bc.4 <- boxcox(R_moment_4 ~ St + Re + Fr + St:Fr + Fr:Re + St:Re, 
+               data = train.t)
+
+lambda.4 <- bc.3$x[which.max(bc.4$y)]
+```
+
+```{r}
+set.seed(3736)
+shuffled_train <- train.t[sample(nrow(train.t)),]
+folds <- cut(seq(1,nrow(train.t)),breaks=10,labels=FALSE)
+lambda <- 0.5
+# error
+rmse.cv.lm <- rep(0, 10)
+
+# Cross validation
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_3
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    lm_cv <- lm(I((R_moment_2 ^ lambda - 1)/lambda) ~ St*Re*Fr - St:Re:Fr, 
+                data = trainData)
+    pred_lm <- (lambda * predict(lm_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
+}
+
+mean(rmse.cv.lm)
 ```
