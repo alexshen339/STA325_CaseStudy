@@ -1,6 +1,8 @@
 ---
-title: "InitialDoc"
-output: html_document
+title: "Case Study: Modeling Liquid Mechanics"
+author: "Alex Shen, Connor Byrd, Dani Trejo, Ki Hyun, Mona Su, Sara Shao, Steven Yuan, Eric Han"
+date: "`r Sys.Date()`"
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
