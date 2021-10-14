@@ -1,6 +1,6 @@
 ---
-title: "Final Report"
-author: "Conner Byrd, Eric Han, Ky Hyun, Sara Shao, Alex Shen, Mona Su, Dani Trejo, Steven Yuan"
+title: "Case Study: Modeling Liquid Mechanics"
+author: "Conner Byrd, Eric Han, Ki Hyun, Sara Shao, Alex Shen, Mona Su, Dani Trejo, Steven Yuan"
 date: "10/12/2021"
 output: pdf_document
 ---
@@ -9,7 +9,9 @@ output: pdf_document
 knitr::opts_chunk$set(echo = FALSE,
                      warning = FALSE,
                      message = FALSE,
-                     fig.align = "center")
+                     fig.align = "center",
+                     fig.width=5, 
+                     fig.height=3)
 ```
 
 ```{r load-packages}
@@ -28,38 +30,155 @@ To do this, we began by doing some basic Exploratory Data Analysis on the three 
 train <- read.csv('data-train.csv')
 ```
 
-```{r}
+
+## Methodology
+
+```{r, echo = TRUE}
 head(train)
 ```
 
 
-## Methodology
-
-BAD LINEAR MODEL SHOWS TRANSFORMATIONS NEEDED AND GAM MIGHT BE A GOOD IDEA
-
-```{r}
+```{r, echo = TRUE}
 train_data <- train %>% 
   mutate(Fr = as.ordered(Fr)) %>% 
   mutate(Re = as.ordered(Re))
 ```
 
+We decided at the beginning to treat Fr and Re as ordered factors. It makes sense to treat Fr as a categorical variable because we are given only three unique values, one of which is infinity, and in practice the three values are representative of different types of clouds. We decided to treat Re as a factored variable as well because we are also only given three unique values and because the differences between the three values are so large that it would be unwise to extrapolate our model to the ranges in between the values we are given. In terms of prediction and inference, we believe our models can still be generalized to Fr and Re values similar to the ones we are working with.
+
 ```{r}
-simplest_lm <- lm(log(R_moment_1) ~ St + Re + Fr, data = train_data)
-plot(simplest_lm)
+first_lm_R1 <- lm(R_moment_1 ~ St + Re + Fr, data = train_data)
+first_lm_R4 <- lm(R_moment_4 ~ St + Re + Fr, data = train_data)
+summary(first_lm_R1)
+summary(first_lm_R4)
 ```
 
-We decided to initially fit the most basic linear model to see what it would look like. We see that there may be an issue with heteroskedasticity in the residuals vs fitted values plot. In addition, looking at the Normal Q-Q plot, the normality assumption also seems to be violated. This information, combined with the seemingly nonlinear relationship between our only continuous predictor St and the 4 moments as seen in the EDA, leads us to try to use a GAM to model the relationship between the predictors and the 4 moments due to the increased flexbility GAMs provide.
+We decided to initially fit the most basic linear model  with all three predictors to see what it would look like. The model for the first moment had a fairly high $R^2$ value (0.929), but the model for the fourth moment had a much lower $R^2$ value (0.425). Additionally, in our diagnostic plots (see Appendix: Section 2), we saw a pattern in the residuals vs fitted values plots where the models would consistently under predict in some areas and over predict in others, indicating non-linearity. In addition, looking at the Normal Q-Q plots, the normality assumption also seemed to be violated for higher moments. This is consistent with the fact that our histogram of St in our EDA was not normally distributed. 
 
+This information lead us to try using a GAM to model the relationship between the predictors and the 4 moments due to the increased flexbility GAMs provide. However, we knew that using GAMs made interpretability an issue, because interpreting a complex smooth function of a continuous predictor is very hard. 
 
-We knew that using GAMs made interpretability an issue, because interpreting a complex smooth function of a continuous predictor is very hard. As a result, we decided to use variable transformations and interaction effects to make linear models with suitable model diagnostics for all 4 moments for the purpose of inference, but we would also compare these models with 4 GAM models (one for each moment) in order to find the best models for prediction. 
-
+As a result, we decided to use variable transformations and interaction effects to make linear models with suitable model diagnostics for all 4 moments for the purpose of inference. We also tried doing forward selection with AIC to see if we could select a simpler model in case were overfitting, but our resulting models were the same as our input models (see Appendix: Section 2). We would also compare our final linear models with 4 GAM models (one for each moment) using 10-fold CV in order to find the best models for prediction. 
 
 
 ## Results
 
+### Final Linear Model
+
+```{r}
+lm1 <- lm(log(R_moment_1) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+summary(lm1)
+
+lm2 <- lm(log(R_moment_2) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+summary(lm2)
+
+lm3 <- lm(log(R_moment_3) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+summary(lm3)
+
+lm4 <- lm(log(R_moment_4) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+summary(lm4)
+```
+
+A one percent increase in Stokes number is associated with 0.146% increase in R moment 1, holding all other predictors constant. When the Reynolds number is 224, the R moment 1 is expected to decrease by 403% from when the Reynolds number is 90, holding all other predictors constant. When the Reynolds number is 398, the R moment 1 is expected to increase by 64% compared to when the Reynolds number is 90. When the Reynolds number is 224 and the Froud number is 0.3, the R moment 1 is expected to be an additional 24% lower compared to when either of those conditions are not met.  
+
+#### Predicted Test Error For R Moments 1-4 With Linear Model
+
+$\newline$
+Predicted Mean-Squared Error For R Moment 1
+```{r warning = FALSE}
+set.seed(21)
+shuffled_train <- train_data[sample(nrow(train_data)),]
+folds <- cut(seq(1,nrow(train_data)),breaks=10,labels=FALSE)
+
+# error
+rmse.cv.lm <- rep(0, 10)
+
+# Cross validation
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_1
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    lm_cv <- lm(log(R_moment_1) ~ log(St) + Re + Fr + St*Fr + Re*Fr + St*Re, data = trainData)
+    pred_lm <- exp(predict(lm_cv, testData, type='response'))
+    rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
+}
+
+mean(rmse.cv.lm)
+```
+
+Predicted Mean-Squared Error For R Moment 2
+```{r warning = FALSE}
+# error
+rmse.cv.lm <- rep(0, 10)
+
+# Cross validation
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_2
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    lm_cv <- lm(log(R_moment_2) ~ log(St) + Re + Fr + St*Fr + Re*Fr + St*Re, data = trainData)
+    pred_lm <- exp(predict(lm_cv, testData, type='response'))
+    rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
+}
+
+mean(rmse.cv.lm)
+```
+
+Predicted Mean-Squared Error For R Moment 3
+```{r warning = FALSE}
+# error
+rmse.cv.lm <- rep(0, 10)
+
+# Cross validation
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_3
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    lm_cv <- lm(log(R_moment_3) ~ log(St) + Re + Fr + St*Fr + Re*Fr + St*Re, data = trainData)
+    pred_lm <- exp(predict(lm_cv, testData, type='response'))
+    rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
+}
+
+mean(rmse.cv.lm)
+```
+
+Predicted Mean-Squared Error For R Moment 4
+```{r warning = FALSE}
+# error
+rmse.cv.lm <- rep(0, 10)
+
+# Cross validation
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_4
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    lm_cv <- lm(log(R_moment_4) ~ log(St) + Re + Fr + St*Fr + Re*Fr + St*Re, data = trainData)
+    pred_lm <- exp(predict(lm_cv, testData, type='response'))
+    rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
+}
+
+mean(rmse.cv.lm)
+```
+
+
 ## Appendix
 
-### Figure 1.1
+### Figure 1.1: Distribution of St
 ```{r, echo = FALSE}
 ggplot(data = train, mapping = aes(x = St)) +
   geom_histogram()
@@ -67,7 +186,7 @@ ggplot(data = train, mapping = aes(x = St)) +
 
 We will try using a log transform on the St variable since the distribution for the St variable is not normally distributed.
 
-### Figure 1.2
+### Figure 1.2: R Moments and Re Colored by Fr
 ```{r}
 scatter1 <- ggplot(data = train, mapping = aes(x = Re, y = R_moment_1, color = factor(Fr))) +
   geom_point(show.legend = FALSE)
@@ -80,7 +199,7 @@ scatter4 <- ggplot(data = train, mapping = aes(x = Re, y = R_moment_4, color = f
 
 (scatter1 + scatter2) / (scatter3 + scatter4)
 ```
-### Figure 1.3
+### Figure 1.3: R Moments and St Colored by Fr
 ```{r}
 scatter5 <- ggplot(data = train, mapping = aes(x = St, y = R_moment_1, color = factor(Fr))) +
   geom_point(show.legend = FALSE) +
@@ -98,3 +217,34 @@ scatter8 <- ggplot(data = train, mapping = aes(x = St, y = R_moment_4, color = f
 (scatter5 + scatter6) / (scatter7 + scatter8)
 ```
 The graphs above show some evidence of interactions, so we will explore interaction terms in our model.
+
+### Figure 2.1-2: Diagnostic Plots For Inital Linear Model of R Moment 1
+
+```{r}
+plot(first_lm_R1, 1:2)
+```
+
+### Figure 2.3-4: Diagnostic Plots For Inital Linear Model of R Moment 4
+
+```{r}
+plot(first_lm_R4, 1:2)
+```
+
+Because the linearity condition is not fulfilled in the above Residuals vs. Fitted plots, we will consider performing a log transformation on our response variables (R moments 1-4).
+
+### Figure 2.5: Forward Selection With AIC On Linear Models
+
+```{r}
+lm1 <- lm(log(R_moment_1) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+summary(step(lm1, direction = "forward"))
+
+lm2 <- lm(log(R_moment_2) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+summary(step(lm2, direction = "forward"))
+
+lm3 <- lm(log(R_moment_3) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+summary(step(lm3, direction = "forward"))
+
+lm4 <- lm(log(R_moment_4) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+summary(step(lm4, direction = "forward"))
+```
+
