@@ -59,7 +59,7 @@ We decided to initially fit the most basic linear model  with all three predicto
 
 This information lead us to try using a GAM to model the relationship between the predictors and the 4 moments due to the increased flexbility GAMs provide. However, we knew that using GAMs made interpretability an issue, because interpreting a complex smooth function of a continuous predictor is very hard. 
 
-As a result, we decided to use variable transformations and interaction effects to make linear models with suitable model diagnostics for all 4 moments for the purpose of inference. We also tried doing forward selection with AIC to see if we could select a simpler model in case were overfitting, but our resulting models were the same as our input models (see Appendix: Section 2). We would also compare our final linear models with 4 GAM models (one for each moment) using 10-fold CV in order to find the best models for prediction. 
+As a result, we decided to use variable transformations and interaction effects to make linear models with suitable model diagnostics for all 4 moments for the purpose of inference. We also tried doing forward selection with AIC to see if we could select a simpler model in case were overfitting, but our resulting models were the same as our input models (see Appendix: Section 2). We chose AIC over BIC because we assume that fluid mechanics is a complex process to model, therefore parity is not expected. We would also compare our final linear models with 4 GAM models (one for each moment) using 10-fold CV in order to find the best models for prediction. 
 
 
 ## Results
