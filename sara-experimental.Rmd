@@ -21,6 +21,8 @@ ggplot(data = train, mapping = aes(x = St)) +
   geom_histogram()
 ```
 
+We will try using a log transform on the St variable since the distribution for the St variable is not normally distributed.
+
 ```{r}
 ggplot(data = train, mapping = aes(x = Re, y = R_moment_1, color = factor(Fr))) +
   geom_point()
@@ -36,6 +38,8 @@ ggplot(data = train, mapping = aes(x = St, y = R_moment_1, color = factor(Fr))) 
   geom_point() +
   geom_smooth(method = lm, se = F)
 ```
+
+The graphs above show some evidence of interactions, so we will explore interaction terms in our model.
 
 ```{r}
 train_data <- train %>% 
@@ -54,20 +58,24 @@ plot(lm_R3, 1)
 plot(lm_R4, 1)
 ```
 
+Because the linearity condition is not fulfilled in the above Residuals vs. Fitted plots, we will consider performing a log transformation on our response variables (R moments 1-4).
 
 ```{r}
 lm1 <- lm(log(R_moment_1) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
 summary(lm1)
 
 lm2 <- lm(log(R_moment_2) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
-summary(lm2)
+#summary(lm2)
 
 lm3 <- lm(log(R_moment_3) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
-summary(lm3)
+#summary(lm3)
 
 lm4 <- lm(log(R_moment_4) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
-summary(lm4)
+#summary(lm4)
 ```
+
+A one percent increase in Stokes number is associated with 0.146% increase in R moment 1, holding all other predictors constant. When the Reynolds number is 224, the R moment 1 is expected to decrease by 403% from when the Reynolds number is 90, holding all other predictors constant. When the Reynolds number is 398, the R moment 1 is expected to increase by 64% compared to when the Reynolds number is 90. When the Reynolds number is 224 and the Froud number is 0.3, the R moment 1 is expected to be an additional 24% lower compared to when both of those conditions are not met.  
+
 ```{r}
 plot(lm3)
 ```
@@ -158,3 +166,6 @@ for(i in 1:10){
 
 mean(rmse.cv.lm)
 ```
+
+
+
