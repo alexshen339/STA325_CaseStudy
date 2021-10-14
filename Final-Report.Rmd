@@ -67,8 +67,8 @@ As a result, we decided to use variable transformations and interaction effects 
 ### Final Linear Model
 
 ```{r, echo = TRUE}
-(lm1 <- lm(log(R_moment_1) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data))
-summary(lm1)$r.squared
+lm1 <- lm(log(R_moment_1) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+summary(lm1)
 (lm2 <- lm(log(R_moment_2) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data))
 summary(lm2)$r.squared
 (lm3 <- lm(log(R_moment_3) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data))
@@ -77,7 +77,11 @@ summary(lm3)$r.squared
 summary(lm4)$r.squared
 ```
 
-A one percent increase in Stokes number is associated with 0.146% increase in R moment 1, holding all other predictors constant. When the Reynolds number is 224, the R moment 1 is expected to decrease by 403% from when the Reynolds number is 90, holding all other predictors constant. When the Reynolds number is 398, the R moment 1 is expected to increase by 64% compared to when the Reynolds number is 90. When the Reynolds number is 224 and the Froud number is 0.3, the R moment 1 is expected to be an additional 24% lower compared to when either of those conditions are not met.  
+All three of our main predictors: Fr, St, and Re, seem to be significant predictors of the R moments. A one percent increase in Stokes number is associated with 0.146% increase in R moment 1, holding all other predictors constant. When the Reynolds number is 224, the R moment 1 is expected to decrease by 403% from when the Reynolds number is 90, holding all other predictors constant. When the Reynolds number is 398, the R moment 1 is expected to increase by 64% compared to when the Reynolds number is 90. 
+
+The interaction terms Fr\*St and Re\*Fr seem to be significant as well. This is consistent with what we expected from our EDA. When Fr is 0.3, the relationship between R moment 1 and St is positive, however, when Fr is infinity, the relationship between R moment 1 and St is negative. Additionally, we see that when the Froud number is 0.3 and the Reynolds number is 224, the R moment 1 is expected to be an additional 24% lower compared to when either of those conditions are not met.
+
+What these results mean for the research question is that Reynolds number (`Re`), gravitational acceleration (`Fr`), and particle characteristic (`St`) all predict cluster formation in clouds to some degree, even after accounting for the effects of each of the other variables. We can also conclude that direction of the relationship between cluster density and Stokes number is different based on what the Froud number is. 
 
 #### Predicted Test Error For R Moments 1-4 With Linear Model
 
@@ -238,10 +242,10 @@ lm1 <- lm(log(R_moment_1) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = tr
 step(lm1, direction = "forward")
 
 lm2 <- lm(log(R_moment_2) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
-step(lm2, direction = "forward")
+#step(lm2, direction = "forward")
 
 lm3 <- lm(log(R_moment_3) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
-step(lm3, direction = "forward")
+#step(lm3, direction = "forward")
 
 lm4 <- lm(log(R_moment_4) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
 step(lm4, direction = "forward")
