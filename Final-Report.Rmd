@@ -4,8 +4,8 @@ author: Conner Byrd, Eric Han, Ki Hyun, Sara Shao, Alex Shen, Mona Su, Dani Trej
   Steven Yuan
 date: "10/12/2021"
 output:
-  word_document: default
   pdf_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -33,21 +33,20 @@ To do this, we began by doing some basic Exploratory Data Analysis on the three 
 train <- read.csv('data-train.csv')
 ```
 
-
-## Methodology
-
 ```{r, echo = TRUE}
 head(train)
 ```
 
+## Methodology
 
+### Initial Approach
 ```{r, echo = TRUE}
 train_data <- train %>% 
   mutate(Fr = as.ordered(Fr)) %>% 
   mutate(Re = as.ordered(Re))
 ```
 
-We decided at the beginning to treat Fr and Re as ordered factors. It makes sense to treat Fr as a categorical variable because we are given only three unique values, one of which is infinity, and in practice the three values are representative of different types of clouds. We decided to treat Re as a factored variable as well because we are also only given three unique values and because the differences between the three values are so large that it would be unwise to extrapolate our model to the ranges in between the values we are given. In terms of prediction and inference, we believe our models can still be generalized to Fr and Re values similar to the ones we are working with.
+We decided at the beginning to treat Fr and Re as ordered factors. It seemed to make sense to treat Fr as a categorical variable because we are given only three unique values. In terms of prediction and inference, we believe our models can still be generalized to Fr and Re values similar to the ones we are working with.
 
 ```{r, echo = TRUE}
 first_lm_R1 <- lm(R_moment_1 ~ St + Re + Fr, data = train_data)
@@ -62,8 +61,48 @@ We decided to initially fit the most basic linear model  with all three predicto
 
 This information lead us to try using a GAM to model the relationship between the predictors and the 4 moments due to the increased flexbility GAMs provide. However, we knew that using GAMs made interpretability an issue, because interpreting a complex smooth function of a continuous predictor is very hard. 
 
-As a result, we decided to use variable transformations and interaction effects to make linear models with suitable model diagnostics for all 4 moments for the purpose of inference. We also tried doing forward selection with AIC to see if we could select a simpler model in case were overfitting, but our resulting models were the same as our input models (see Appendix: Section 2). We chose AIC over BIC because we assume that fluid mechanics is a complex process to model, therefore parity is not expected. We would also compare our final linear models with 4 GAM models (one for each moment) using 10-fold CV in order to find the best models for prediction. 
+### Varaible transformation
+As a result, we decided to use variable transformations and include interaction effects to make linear models with suitable model diagnostics for all 4 moments for the purpose of inference. To decide how to apply variable transformations, we observed the predictor and response variables, took a deeper look at the purpose of the study, and found three main problems.
 
+1. Just converting Fr, and Re into categorical values may result in losing information as the exact numerical value could have high relationship with the moments. Furthermore, this model should be used later to predict behaviors of particles in environments with higher Re values.
+2. The scale of Fr, St, and Re differs from each other. Fr ranges $[0, \infty)$, while St is $[0, 3]$. Furthermore, in real world, Re could be in the scale of $10^7$.
+3. The response variables (moments) are heavily skewed. For example, for the 4th moment, some response variables are at the scale of $10^{-10}$, while some are at the scale of $10^{10}$
+
+As a result, we considered transformations on the potential predictor variables. For Froude number (Fr), a monotonic transformation of $1 - e^{-Fr}$ was made to change the range from $[0, \infty)$ to $[0, 1]$.
+For Stokes number (St), as shown in the EDA, log transformation was undertaken to address the skewness. For Reynolds number (Re), not only is the actual value in practice much larger than the given training data, but also within the training data itself, Reynolds number was much greater in scale. To address the difference in scale, log transformation was also made on Reynolds number.
+
+```{r, echo = F}
+train.t <- train %>% 
+    mutate(
+        Re = log(Re),
+        Fr = 1 - exp(-Fr),
+        St = log(St)
+    )
+```
+
+Transformation on the response variable also needed to take place before fitting the models. For the four moments, we have considered box-cox transformation to normalize the variables and adjust for the difference in scale. As the EDA shows, the response variables have a skewed distribution. Thus, first, normalization was needed for the four moments. Moreover, the scale of the response variable becomes extremely larger as the order of the moments increase. (4th moment would have approximately to the power of 4 scale of the 1st moment) Hence, second, adjustments for scale were needed for the four moments. Box-cox transformation performs normalization and adjusts the scale of variables: apt for our response variable transformation.
+
+However, the $\lambda$ for box-cox transformation needed to be specified for each of the four moments. We have calculated and speficied the four different lambdas as the maximum log-likelihood estimate as below.
+
+```{r}
+lambda.1 = -0.0202
+lambda.2 = -0.1010
+lambda.3 = -0.0606
+lambda.4 = -0.0606
+```
+
+### Cross-Validation
+For each moments, we considered various combinations of predictor variables and interactions of the transformed variables. In order to compare the models and choose the most optimal ones, we used 10-fold cross validation to estimate the test error. A major reason for choosing cross validation was that cross validation can provide a direct estimate for the test estimate, even when we do not have a clear picture of the noises of the variables. Furthermore, it is less likely to result in overfitting compared to LOOCV, and computationally more feasible.
+
+To perform a valid 10-fold cross validation, we first shuffled the training dataset to ensure that similar data do not tend to be included in the same fold. Then, we divided the training dataset into 10 folds and used the same folds to perform cross validation and obtain estimated test error for each model. Below is how the folds were created.
+
+```{r}
+set.seed(21)
+shuffled_train <- train[sample(nrow(train)),]
+folds <- cut(seq(1,nrow(train)),breaks=10,labels=FALSE)
+```
+ 
+At each fold, the validation set (8~9 data points for each fold) was reserved, and the other points were used to train a model. Then, the model was used to test on the validation set. RMSE was then calculated at each fold and the mean RSME was then calculated to compare the estimated test error with other model candidates. For each moment, the model with the lowest estimated test error was selected.
 
 ## Results
 
