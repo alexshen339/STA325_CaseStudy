@@ -1591,4 +1591,7 @@ CV_errors.gam <- CV_errors.gam %>%
 apply(CV_errors.gam, 1, FUN = which.min)
 
 best.gam <- list(gam.1.5, gam.2.5, gam.3.5, gam.4.5)
+
+# GAM better than LM?
+apply(CV_errors.lm, 1, min) >= apply(CV_errors.gam, 1, min)
 ```
