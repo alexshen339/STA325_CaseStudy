@@ -36,11 +36,6 @@ train <- read.csv('data-train.csv')
 ## Methodology
 
 ### Initial Approach
-```{r, echo = TRUE}
-train_data <- train %>% 
-  mutate(Fr = as.ordered(Fr)) %>% 
-  mutate(Re = as.ordered(Re))
-```
 
 We decided at the beginning to treat Fr and Re as ordered factors. It seemed to make sense to treat Fr as a categorical variable because we are given only three unique values. In terms of prediction and inference, we believe our models can still be generalized to Fr and Re values similar to the ones we are working with.
 
@@ -66,9 +61,8 @@ As a result, we decided to use variable transformations and include interaction 
 
 As a result, we considered transformations on the potential predictor variables. For Froude number (Fr), a monotonic transformation of $1 - e^{-Fr}$ was made to change the range from $[0, \infty)$ to $[0, 1]$.
 For Stokes number (St), as shown in the EDA, log transformation was undertaken to address the skewness. For Reynolds number (Re), not only is the actual value in practice much larger than the given training data, but also within the training data itself, Reynolds number was much greater in scale. To address the difference in scale, log transformation was also made on Reynolds number.
-
-```{r, echo = F}
-train.t <- train %>% 
+```{r, echo = TRUE}
+train_data <- train %>% 
     mutate(
         Re = log(Re),
         Fr = 1 - exp(-Fr),
@@ -80,45 +74,47 @@ Transformation on the response variable also needed to take place before fitting
 
 However, the $\lambda$ for box-cox transformation needed to be specified for each of the four moments. We have calculated and speficied the four different lambdas as the maximum log-likelihood estimate as below.
 
-```{r, include = TRUE}
+```{r, echo = TRUE}
 lambda.1 = -0.0202
 lambda.2 = -0.1010
 lambda.3 = -0.0606
 lambda.4 = -0.0606
 ```
 
-### Cross-Validation
+### Forward AIC for Linear Models
+For linear model, we tried doing forward selection with AIC to see if we could select a simpler model in case were overfitting, but our resulting models were the same as our input models (see Appendix: Section 2). We would also compare our final linear models with 4 GAM models (one for each moment) using 10-fold CV in order to find the best models for prediction. 
+
+### Cross Validation
 For each moments, we considered various combinations of predictor variables and interactions of the transformed variables. In order to compare the models and choose the most optimal ones, we used 10-fold cross validation to estimate the test error. A major reason for choosing cross validation was that cross validation can provide a direct estimate for the test estimate, even when we do not have a clear picture of the noises of the variables. Furthermore, it is less likely to result in overfitting compared to LOOCV, and computationally more feasible.
 
 To perform a valid 10-fold cross validation, we first shuffled the training dataset to ensure that similar data do not tend to be included in the same fold. Then, we divided the training dataset into 10 folds and used the same folds to perform cross validation and obtain estimated test error for each model. Below is how the folds were created.
 
-```{r}
-set.seed(21)
-shuffled_train <- train[sample(nrow(train)),]
-folds <- cut(seq(1,nrow(train)),breaks=10,labels=FALSE)
+```{r, echo = TRUE}
+set.seed(3736)
+shuffled_train <- train_data[sample(nrow(train_data)),]
+folds <- cut(seq(1,nrow(train_data)),breaks=10,labels=FALSE)
 ```
  
 At each fold, the validation set (8~9 data points for each fold) was reserved, and the other points were used to train a model. Then, the model was used to test on the validation set. RMSE was then calculated at each fold and the mean RSME was then calculated to compare the estimated test error with other model candidates. For each moment, the model with the lowest estimated test error was selected.
 
 For each moment, the following linear models were considered to vary complexity and explore various possibilities: 
-1. Linear model without interaction
-2. Linear models with one interaction term on each combination of predictor variables
-3. Linear models with two interaction terms
-4. Linear model with all possible interaction terms
-
+1. GAM model without interaction
+2. GAM models with one interaction term on each combination of predictor variables
+3. GAM models with two interaction terms
+4. GAM model with all possible interaction terms
 
 ## Results
 
 ### Final Linear Model
 
 ```{r, echo = TRUE}
-lm1 <- lm(log(R_moment_1) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+lm1 <- lm((R_moment_1^lambda.1 - 1) / lambda.1 ~ St + Re + Fr + Fr*Re + St*Fr + Re*St, data = train_data)
 summary(lm1)
-(lm2 <- lm(log(R_moment_2) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data))
+lm2 <- lm((R_moment_2^lambda.2 - 1) / lambda.2 ~ St + Re + Fr + Fr*Re + St*Fr + Re*St, data = train_data)
 summary(lm2)$r.squared
-(lm3 <- lm(log(R_moment_3) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data))
+lm3 <- lm((R_moment_3^lambda.3 - 1) / lambda.3 ~ St + Re + Fr + Fr*Re + St*Fr + Re*St, data = train_data)
 summary(lm3)$r.squared
-(lm4 <- lm(log(R_moment_4) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data))
+lm4 <- lm((R_moment_4^lambda.4 - 1) / lambda.4 ~ St + Re + Fr + Fr*Re + St*Fr + Re*St, data = train_data)
 summary(lm4)$r.squared
 ```
 
@@ -126,17 +122,13 @@ All three of our main predictors: Fr, St, and Re, seem to be significant predict
 
 The interaction terms Fr\*St and Re\*Fr seem to be significant as well. This is consistent with what we expected from our EDA. When Fr is 0.3, the relationship between R moment 1 and St is positive, however, when Fr is infinity, the relationship between R moment 1 and St is negative. Additionally, we see that when the Froud number is 0.3 and the Reynolds number is 224, the R moment 1 is expected to be an additional 24% lower compared to when either of those conditions are not met.
 
-What these results mean for the research question is that Reynolds number (`Re`), gravitational acceleration (`Fr`), and particle characteristic (`St`) all predict cluster formation in clouds to some degree, even after accounting for the effects of each of the other variables. We can also conclude that direction of the relationship between cluster density and Stokes number is different based on what the Froud number is. 
+What these results mean for the research question is that Reynolds number (`Re`), gravitational acceleration (`Fr`), and particle characteristic (`St`) all predict cluster formation in clouds to some degree, even after accounting for the effects of each of the other variables. We can also conclude that direction of the relationship between cluster density and Stokes number is different based on what the Froud number is.
 
 #### Predicted Test Error For R Moments 1-4 With Linear Model
 
 $\newline$
 Predicted Mean-Squared Error For R Moment 1
 ```{r warning = FALSE}
-set.seed(21)
-shuffled_train <- train_data[sample(nrow(train_data)),]
-folds <- cut(seq(1,nrow(train_data)),breaks=10,labels=FALSE)
-
 # error
 rmse.cv.lm <- rep(0, 10)
 
@@ -147,10 +139,10 @@ for(i in 1:10){
     testData <- shuffled_train[testIndexes, ]
     y.test <- testData$R_moment_1
     trainData <- shuffled_train[-testIndexes, ]
-   
+    
     #Use the test and train data
-    lm_cv <- lm(log(R_moment_1) ~ log(St) + Re + Fr + St*Fr + Re*Fr + St*Re, data = trainData)
-    pred_lm <- exp(predict(lm_cv, testData, type='response'))
+    lm_cv <- lm((R_moment_1^lambda.1 - 1) / lambda.1 ~ St + Re + Fr + Fr*Re + St*Fr + Re*St, data = trainData)
+    pred_lm <- (predict(lm_cv, testData, type='response') * lambda.1 + 1)^(1/lambda.1)
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
@@ -171,8 +163,13 @@ for(i in 1:10){
     trainData <- shuffled_train[-testIndexes, ]
    
     #Use the test and train data
-    lm_cv <- lm(log(R_moment_2) ~ log(St) + Re + Fr + St*Fr + Re*Fr + St*Re, data = trainData)
+    lm_cv <- lm(log(R_moment_2) ~ St + Re + Fr + St*Fr + Re*Fr + St*Re, data = trainData)
     pred_lm <- exp(predict(lm_cv, testData, type='response'))
+    rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
+    
+    #Use the test and train data
+    lm_cv <- lm((R_moment_2^lambda.2 - 1) / lambda.2 ~ St + Re + Fr + Fr*Re + St*Fr + Re*St, data = trainData)
+    pred_lm <- (predict(lm_cv, testData, type='response') * lambda.2 + 1)^(1/lambda.2)
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
@@ -193,7 +190,7 @@ for(i in 1:10){
     trainData <- shuffled_train[-testIndexes, ]
    
     #Use the test and train data
-    lm_cv <- lm(log(R_moment_3) ~ log(St) + Re + Fr + St*Fr + Re*Fr + St*Re, data = trainData)
+    lm_cv <- lm(log(R_moment_3) ~ St + Re + Fr + Fr*Re + St*Fr + Re*St, data = trainData)
     pred_lm <- exp(predict(lm_cv, testData, type='response'))
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
@@ -214,9 +211,8 @@ for(i in 1:10){
     y.test <- testData$R_moment_4
     trainData <- shuffled_train[-testIndexes, ]
    
-    #Use the test and train data
-    lm_cv <- lm(log(R_moment_4) ~ log(St) + Re + Fr + St*Fr + Re*Fr + St*Re, data = trainData)
-    pred_lm <- exp(predict(lm_cv, testData, type='response'))
+    lm_cv <- lm((R_moment_4^lambda.4 - 1) / lambda.4 ~ St + Re + Fr + Fr*Re + St*Fr + Re*St, data = trainData)
+    pred_lm <- (predict(lm_cv, testData, type='response') * lambda.4 + 1)^(1/lambda.4)
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
@@ -283,16 +279,16 @@ Because the linearity condition is not fulfilled in the above Residuals vs. Fitt
 ### Figure 2.5: Forward Selection With AIC On Linear Models
 
 ```{r, echo = TRUE}
-lm1 <- lm(log(R_moment_1) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+lm1 <- lm((R_moment_1^lambda.1 - 1) / lambda.1 ~ St + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
 step(lm1, direction = "forward")
 
-lm2 <- lm(log(R_moment_2) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+lm2 <- lm((R_moment_2^lambda.2 - 1) / lambda.2 ~ St + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
 #step(lm2, direction = "forward")
 
-lm3 <- lm(log(R_moment_3) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+lm3 <- lm((R_moment_3^lambda.2 - 1) / lambda.3  ~ St + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
 #step(lm3, direction = "forward")
 
-lm4 <- lm(log(R_moment_4) ~ log(St) + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+lm4 <- lm((R_moment_4^lambda.4 - 1) / lambda.4 ~ St + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
 step(lm4, direction = "forward")
 ```
 
