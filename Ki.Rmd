@@ -1585,3 +1585,10 @@ CV_errors.gam <- CV_errors.gam %>%
     add_row(Model.0 = cv.0, Model.1 = cv.1, Model.2 = cv.2, Model.3 = cv.3, 
             Model.4 = cv.4, Model.5 = cv.5, Model.6 = cv.6, Model.7 = cv.7)
 ```
+
+```{r gam_funcs}
+# getting the list of gam functions with the least CV-error for each moment
+apply(CV_errors.gam, 1, FUN = which.min)
+
+best.gam <- list(gam.1.5, gam.2.5, gam.3.5, gam.4.5)
+```
