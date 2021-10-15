@@ -31,6 +31,13 @@ Log transformation was done on the Stokes number to reduce the skewness present
 in the data. Moreover, Reynolds number also underwent log transformation in 
 order for the scale of the predictors to be similar.
 
+```{r box_cox_moment_1}
+model.1 <- lm(R_moment_1 ~ St + Re + Fr, data = train.t)
+
+bc.1 <- boxcox(R_moment_1 ~ St + Re + Fr, data = train.t)
+lambda.1 <- bc.1$x[which.max(bc.1$y)]
+```
+
 ```{r box_cox_moment_2}
 model.2 <- lm(R_moment_2 ~ St + Re + Fr, data = train.t)
 
@@ -59,14 +66,198 @@ large values. Moreover, the distribution of these response variables appear to
 be extremely skewed. Therefore, box cox transformation was needed on the three 
 moments for analysis. 
 
+## First Moment
+
+```{r Third_Moment_setup}
+shuffled_train <- train[sample(nrow(train)),]
+folds <- cut(seq(1,nrow(train)),breaks=10,labels=FALSE)
+lambda <- lambda.1
+
+# error
+rmse.cv.lm <- rep(0, 10)
+```
+
+#### No interaction term
+
+```{r third_no_inter}
+# Cross validation
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_1
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    lm_cv <- lm((R_moment_1 ^ lambda - 1)/lambda ~ log(St) + log(Re) + 
+                    I(1 - exp(-Fr)), data = trainData)
+    pred_lm <- (lambda * predict(lm_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
+}
+
+mean(rmse.cv.lm)
+```
+
+#### St:Re
+
+```{r third_inter_1}
+# Cross validation
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_1
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    lm_cv <- lm((R_moment_1 ^ lambda - 1)/lambda ~ log(St) + log(Re) + 
+                    I(1 - exp(-Fr)) + log(St):log(Re), data = trainData)
+    pred_lm <- (lambda * predict(lm_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
+}
+
+mean(rmse.cv.lm)
+```
+
+#### St:Fr
+
+```{r second_inter_2}
+# Cross validation
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_1
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    lm_cv <- lm((R_moment_1 ^ lambda - 1)/lambda ~ log(St) + log(Re) + 
+                    I(1 - exp(-Fr)) + log(St):I(1 - exp(-Fr)), data = trainData)
+    pred_lm <- (lambda * predict(lm_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
+}
+
+mean(rmse.cv.lm)
+```
+
+#### Re:Fr
+
+```{r second_inter_3}
+# Cross validation
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_1
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    lm_cv <- lm((R_moment_1 ^ lambda - 1)/lambda ~ log(St) + log(Re) + 
+                    I(1 - exp(-Fr)) + log(Re):I(1 - exp(-Fr)), data = trainData)
+    pred_lm <- (lambda * predict(lm_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
+}
+
+mean(rmse.cv.lm)
+```
+
+#### Re:Fr and St:Re
+
+```{r second_inter_2_1}
+# Cross validation
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_1
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    lm_cv <- lm((R_moment_1 ^ lambda - 1)/lambda ~ log(St) + log(Re) + 
+                    I(1 - exp(-Fr)) + log(Re):I(1 - exp(-Fr)) + log(Re):log(St), 
+                data = trainData)
+    pred_lm <- (lambda * predict(lm_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
+}
+
+mean(rmse.cv.lm)
+```
+
+#### Re:Fr and St:Fr
+
+```{r second_inter_2_2}
+# Cross validation
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_1
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    lm_cv <- lm((R_moment_1 ^ lambda - 1)/lambda ~ log(St) + log(Re) + 
+                    I(1 - exp(-Fr)) + log(Re):I(1 - exp(-Fr)) + 
+                    I(1 - exp(-Fr)):log(St), data = trainData)
+    pred_lm <- (lambda * predict(lm_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
+}
+
+mean(rmse.cv.lm)
+```
+
+#### St:Re and St:Fr
+
+```{r second_inter_2_3}
+# Cross validation
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_1
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    lm_cv <- lm((R_moment_1 ^ lambda - 1)/lambda ~ log(St) + log(Re) + 
+                    I(1 - exp(-Fr)) + log(Re):log(St) + 
+                    I(1 - exp(-Fr)):log(St), data = trainData)
+    pred_lm <- (lambda * predict(lm_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
+}
+
+mean(rmse.cv.lm)
+```
+
+#### All three
+
+```{r second_inter_3}
+# Cross validation
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_1
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    lm_cv <- lm((R_moment_1 ^ lambda - 1)/lambda ~ log(St) + log(Re) + 
+                    I(1 - exp(-Fr)) + log(Re):log(St) + 
+                    I(1 - exp(-Fr)):log(St) + log(Re):I(1 - exp(-Fr)), 
+                data = trainData)
+    pred_lm <- (lambda * predict(lm_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
+}
+
+mean(rmse.cv.lm)
+```
+
+For predicting the fourth moment, the model with the interaction term Re:Fr 
+seems to have the lowest estimated test MSE according to the 10-fold cross 
+validation process.
+
 ## Second Moment
 
 ```{r Second_Moment_setup}
-shuffled_train <- train[sample(nrow(train)),]
-folds <- cut(seq(1,nrow(train)),breaks=10,labels=FALSE)
 lambda <- lambda.2
-# error
-rmse.cv.lm <- rep(0, 10)
 ```
 
 #### No interaction term
