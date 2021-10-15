@@ -33,10 +33,6 @@ To do this, we began by doing some basic Exploratory Data Analysis on the three 
 train <- read.csv('data-train.csv')
 ```
 
-```{r, echo = TRUE}
-head(train)
-```
-
 ## Methodology
 
 ### Initial Approach
@@ -84,7 +80,7 @@ Transformation on the response variable also needed to take place before fitting
 
 However, the $\lambda$ for box-cox transformation needed to be specified for each of the four moments. We have calculated and speficied the four different lambdas as the maximum log-likelihood estimate as below.
 
-```{r}
+```{r, include = TRUE}
 lambda.1 = -0.0202
 lambda.2 = -0.1010
 lambda.3 = -0.0606
@@ -103,6 +99,13 @@ folds <- cut(seq(1,nrow(train)),breaks=10,labels=FALSE)
 ```
  
 At each fold, the validation set (8~9 data points for each fold) was reserved, and the other points were used to train a model. Then, the model was used to test on the validation set. RMSE was then calculated at each fold and the mean RSME was then calculated to compare the estimated test error with other model candidates. For each moment, the model with the lowest estimated test error was selected.
+
+For each moment, the following linear models were considered to vary complexity and explore various possibilities: 
+1. Linear model without interaction
+2. Linear models with one interaction term on each combination of predictor variables
+3. Linear models with two interaction terms
+4. Linear model with all possible interaction terms
+
 
 ## Results
 
