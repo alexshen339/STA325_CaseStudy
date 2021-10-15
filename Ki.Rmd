@@ -13,6 +13,7 @@ set.seed(3736)
 ```{r packages, include=FALSE}
 library(MASS)
 library(tidyverse)
+library(mgcv)
 ```
 
 ```{r data}
@@ -68,7 +69,7 @@ moments for analysis.
 
 ## First Moment
 
-```{r Third_Moment_setup}
+```{r First_Moment_setup}
 shuffled_train <- train[sample(nrow(train)),]
 folds <- cut(seq(1,nrow(train)),breaks=10,labels=FALSE)
 lambda <- lambda.1
@@ -79,7 +80,7 @@ rmse.cv.lm <- rep(0, 10)
 
 #### No interaction term
 
-```{r third_no_inter}
+```{r first_no_inter}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -95,12 +96,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.0 <- mean(rmse.cv.lm)
 ```
 
 #### St:Re
 
-```{r third_inter_1}
+```{r first_inter_1}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -116,12 +117,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.1 <- mean(rmse.cv.lm)
 ```
 
 #### St:Fr
 
-```{r second_inter_2}
+```{r first_inter_2}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -137,12 +138,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.2 <- mean(rmse.cv.lm)
 ```
 
 #### Re:Fr
 
-```{r second_inter_3}
+```{r first_inter_3}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -158,12 +159,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.3 <- mean(rmse.cv.lm)
 ```
 
 #### Re:Fr and St:Re
 
-```{r second_inter_2_1}
+```{r first_inter_4}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -180,12 +181,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.4 <- mean(rmse.cv.lm)
 ```
 
 #### Re:Fr and St:Fr
 
-```{r second_inter_2_2}
+```{r first_inter_5}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -202,12 +203,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.5 <- mean(rmse.cv.lm)
 ```
 
 #### St:Re and St:Fr
 
-```{r second_inter_2_3}
+```{r first_inter_6}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -224,12 +225,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.6 <- mean(rmse.cv.lm)
 ```
 
 #### All three
 
-```{r second_inter_3}
+```{r first_inter_7}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -247,7 +248,13 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.7 <- mean(rmse.cv.lm)
+```
+
+```{r first_save}
+CV_errors.lm  <- tibble(Model.0 = cv.0, Model.1 = cv.1, Model.2 = cv.2, 
+                     Model.3 = cv.3, Model.4 = cv.4, Model.5 = cv.5, 
+                     Model.6 = cv.6, Model.7 = cv.7)
 ```
 
 For predicting the fourth moment, the model with the interaction term Re:Fr 
@@ -278,7 +285,7 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.0 <- mean(rmse.cv.lm)
 ```
 
 #### St:Re
@@ -299,7 +306,7 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.1 <- mean(rmse.cv.lm)
 ```
 
 #### St:Fr
@@ -320,7 +327,7 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.2 <- mean(rmse.cv.lm)
 ```
 
 #### Re:Fr
@@ -341,12 +348,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.3 <- mean(rmse.cv.lm)
 ```
 
 #### Re:Fr and St:Re
 
-```{r second_inter_2_1}
+```{r second_inter_4}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -363,12 +370,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.4 <- mean(rmse.cv.lm)
 ```
 
 #### Re:Fr and St:Fr
 
-```{r second_inter_2_2}
+```{r second_inter_5}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -385,12 +392,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.5 <- mean(rmse.cv.lm)
 ```
 
 #### St:Re and St:Fr
 
-```{r second_inter_2_3}
+```{r second_inter_6}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -407,12 +414,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.6 <- mean(rmse.cv.lm)
 ```
 
 #### All three
 
-```{r second_inter_3}
+```{r second_inter_7}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -430,7 +437,13 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.7 <- mean(rmse.cv.lm)
+```
+
+```{r second_save}
+CV_errors.lm  <- CV_errors.lm %>% 
+    add_row(Model.0 = cv.0, Model.1 = cv.1, Model.2 = cv.2, Model.3 = cv.3, 
+           Model.4 = cv.4, Model.5 = cv.5, Model.6 = cv.6, Model.7 = cv.7)
 ```
 
 For predicting the second moment, the model with the interaction term Re:Fr 
@@ -461,7 +474,7 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.0 <- mean(rmse.cv.lm)
 ```
 
 #### St:Re
@@ -482,12 +495,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.1 <- mean(rmse.cv.lm)
 ```
 
 #### St:Fr
 
-```{r second_inter_2}
+```{r third_inter_2}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -503,12 +516,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.2 <- mean(rmse.cv.lm)
 ```
 
 #### Re:Fr
 
-```{r second_inter_3}
+```{r third_inter_3}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -524,12 +537,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.3 <- mean(rmse.cv.lm)
 ```
 
 #### Re:Fr and St:Re
 
-```{r second_inter_2_1}
+```{r third_inter_4}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -546,12 +559,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.4 <- mean(rmse.cv.lm)
 ```
 
 #### Re:Fr and St:Fr
 
-```{r second_inter_2_2}
+```{r third_inter_5}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -568,12 +581,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.5 <- mean(rmse.cv.lm)
 ```
 
 #### St:Re and St:Fr
 
-```{r second_inter_2_3}
+```{r third_inter_6}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -590,12 +603,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.6 <- mean(rmse.cv.lm)
 ```
 
 #### All three
 
-```{r second_inter_3}
+```{r third_inter_7}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -613,7 +626,13 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.7 <- mean(rmse.cv.lm)
+```
+
+```{r third_save}
+CV_errors.lm  <- CV_errors.lm %>% 
+    add_row(Model.0 = cv.0, Model.1 = cv.1, Model.2 = cv.2, Model.3 = cv.3, 
+           Model.4 = cv.4, Model.5 = cv.5, Model.6 = cv.6, Model.7 = cv.7)
 ```
 
 For predicting the third moment, the model with the interaction term Re:Fr 
@@ -628,7 +647,7 @@ lambda <- lambda.4
 
 #### No interaction term
 
-```{r third_no_inter}
+```{r fourth_no_inter}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -644,12 +663,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.0 <- mean(rmse.cv.lm)
 ```
 
 #### St:Re
 
-```{r third_inter_1}
+```{r fourth_inter_1}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -665,12 +684,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.1 <- mean(rmse.cv.lm)
 ```
 
 #### St:Fr
 
-```{r second_inter_2}
+```{r fourth_inter_2}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -686,12 +705,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.2 <- mean(rmse.cv.lm)
 ```
 
 #### Re:Fr
 
-```{r second_inter_3}
+```{r fourth_inter_3}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -707,12 +726,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.3 <- mean(rmse.cv.lm)
 ```
 
 #### Re:Fr and St:Re
 
-```{r second_inter_2_1}
+```{r fourth_inter_4}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -729,12 +748,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.4 <- mean(rmse.cv.lm)
 ```
 
 #### Re:Fr and St:Fr
 
-```{r second_inter_2_2}
+```{r fourth_inter_5}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -751,12 +770,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.5 <- mean(rmse.cv.lm)
 ```
 
 #### St:Re and St:Fr
 
-```{r second_inter_2_3}
+```{r fourth_inter_6}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -773,12 +792,12 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.6 <- mean(rmse.cv.lm)
 ```
 
 #### All three
 
-```{r second_inter_3}
+```{r fourth_inter_7}
 # Cross validation
 for(i in 1:10){
     #Segment your data by fold using the which() function 
@@ -796,9 +815,773 @@ for(i in 1:10){
     rmse.cv.lm[i] = mean((pred_lm - y.test)^2)
 }
 
-mean(rmse.cv.lm)
+cv.7 <- mean(rmse.cv.lm)
+```
+
+```{r fourth_save}
+CV_errors.lm  <- CV_errors.lm %>% 
+    add_row(Model.0 = cv.0, Model.1 = cv.1, Model.2 = cv.2, Model.3 = cv.3, 
+           Model.4 = cv.4, Model.5 = cv.5, Model.6 = cv.6, Model.7 = cv.7)
 ```
 
 For predicting the fourth moment, the model with the interaction term Re:Fr 
 seems to have the lowest estimated test MSE according to the 10-fold cross 
 validation process.
+
+## GAM Models
+
+#### First Moment
+
+```{r First_Moment}
+# setting lambda
+lambda <- lambda.1
+# CV set-up
+shuffled_train <- train.t[sample(nrow(train.t)),] # training data
+folds <- cut(seq(1,nrow(train.t)),breaks=10,labels=FALSE) # folds
+rmse.cv.gam <- rep(0, 10) # error bins
+
+# gam function with no interaction terms
+gam.1.0 <- gam((R_moment_1 ^ lambda - 1)/lambda ~ s(St) + Re + Fr, 
+               data = train.t)
+# model diagnostics
+gam.check(gam.1.0)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_1
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_1 ^ lambda - 1)/lambda ~ s(St) + Re + Fr, 
+                  data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.0 <- mean(rmse.cv.gam)
+
+# gam function with St:Re
+gam.1.1 <- gam((R_moment_1 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re), data = train.t)
+# model diagnostics
+gam.check(gam.1.1)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_1
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_1 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re), data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.1 <- mean(rmse.cv.gam)
+
+# gam function with St:Fr
+gam.1.2 <- gam((R_moment_1 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Fr), data = train.t)
+# model diagnostics
+gam.check(gam.1.2)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_1
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_1 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Fr), data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.2 <- mean(rmse.cv.gam)
+
+# gam function with Re:Fr
+gam.1.3 <- gam((R_moment_1 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + Re:Fr, 
+               data = train.t)
+# model diagnostics
+gam.check(gam.1.3)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_1
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_1 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + Re:Fr, 
+                  data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.3 <- mean(rmse.cv.gam)
+
+# gam function with St:Re, Re:Fr
+gam.1.4 <- gam((R_moment_1 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re) + Re:Fr, data = train.t)
+# model diagnostics
+gam.check(gam.1.4)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_1
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_1 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re) + Re:Fr, data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.4 <- mean(rmse.cv.gam)
+
+# gam function with St:Fr, Re:Fr
+gam.1.5 <- gam((R_moment_1 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Fr) + Re:Fr, data = train.t)
+# model diagnostics
+gam.check(gam.1.5)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_1
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_1 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Fr) + Re:Fr, data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.5 <- mean(rmse.cv.gam)
+
+# gam function with St:Fr, St:Re
+gam.1.6 <- gam((R_moment_1 ^ lambda - 1)/lambda ~ s(St) + Re+ Fr + 
+                   s(St, by = Fr) + s(St, by = Re), data = train.t)
+# model diagnostics
+gam.check(gam.1.6)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_1
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_1 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re) + s(St, by = Fr), data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.6 <- mean(rmse.cv.gam)
+
+# gam function with all the interaction terms
+gam.1.7 <- gam((R_moment_1 ^ lambda - 1)/lambda ~ s(St) + Re+ Fr + 
+                   s(St, by = Fr) + s(St, by = Re) + Re:Fr, data = train.t)
+# model diagnostics
+gam.check(gam.1.7)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_1
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_1 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re) + s(St, by = Re) + Re:Fr, data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.7 <- mean(rmse.cv.gam)
+
+# save the errors
+CV_errors.gam  <- tibble(Model.0 = cv.0, Model.1 = cv.1, Model.2 = cv.2, 
+                     Model.3 = cv.3, Model.4 = cv.4, Model.5 = cv.5, 
+                     Model.6 = cv.6, Model.7 = cv.7)
+```
+
+#### Second Moment
+
+```{r Second_Moment}
+# setting lambda
+lambda <- lambda.2
+
+# gam function with no interaction terms
+gam.2.0 <- gam((R_moment_2 ^ lambda - 1)/lambda ~ s(St) + Re + Fr, 
+               data = train.t)
+# model diagnostics
+gam.check(gam.2.0)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_2
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_2 ^ lambda - 1)/lambda ~ s(St) + Re + Fr, 
+                  data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.0 <- mean(rmse.cv.gam)
+
+# gam function with St:Re
+gam.2.1 <- gam((R_moment_2 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re), data = train.t)
+# model diagnostics
+gam.check(gam.2.1)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_2
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_2 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re), data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.1 <- mean(rmse.cv.gam)
+
+# gam function with St:Fr
+gam.2.2 <- gam((R_moment_2 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Fr), data = train.t)
+# model diagnostics
+gam.check(gam.2.2)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_2
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_2 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Fr), data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.2 <- mean(rmse.cv.gam)
+
+# gam function with Re:Fr
+gam.2.3 <- gam((R_moment_2 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + Re:Fr, 
+               data = train.t)
+# model diagnostics
+gam.check(gam.2.3)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_2
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_2 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + Re:Fr, 
+                  data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.3 <- mean(rmse.cv.gam)
+
+# gam function with St:Re, Re:Fr
+gam.2.4 <- gam((R_moment_2 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re) + Re:Fr, data = train.t)
+# model diagnostics
+gam.check(gam.2.4)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_2
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_2 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re) + Re:Fr, data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.4 <- mean(rmse.cv.gam)
+
+# gam function with St:Fr, Re:Fr
+gam.2.5 <- gam((R_moment_2 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Fr) + Re:Fr, data = train.t)
+# model diagnostics
+gam.check(gam.2.5)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_2
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_2 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Fr) + Re:Fr, data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.5 <- mean(rmse.cv.gam)
+
+# gam function with St:Fr, St:Re
+gam.2.6 <- gam((R_moment_2 ^ lambda - 1)/lambda ~ s(St) + Re+ Fr + 
+                   s(St, by = Fr) + s(St, by = Re), data = train.t)
+# model diagnostics
+gam.check(gam.2.6)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_2
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_2 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re) + s(St, by = Fr), data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.6 <- mean(rmse.cv.gam)
+
+# gam function with all the interaction terms
+gam.2.7 <- gam((R_moment_2 ^ lambda - 1)/lambda ~ s(St) + Re+ Fr + 
+                   s(St, by = Fr) + s(St, by = Re) + Re:Fr, data = train.t)
+# model diagnostics
+gam.check(gam.2.7)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_2
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_2 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re) + s(St, by = Re) + Re:Fr, data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.7 <- mean(rmse.cv.gam)
+
+# save the errors
+CV_errors.gam <- CV_errors.gam %>% 
+    add_row(Model.0 = cv.0, Model.1 = cv.1, Model.2 = cv.2, Model.3 = cv.3, 
+            Model.4 = cv.4, Model.5 = cv.5, Model.6 = cv.6, Model.7 = cv.7)
+```
+
+#### Third Moment
+
+```{r Third_Moment}
+# setting lambda
+lambda <- lambda.3
+
+# gam function with no interaction terms
+gam.3.0 <- gam((R_moment_3 ^ lambda - 1)/lambda ~ s(St) + Re + Fr, 
+               data = train.t)
+# model diagnostics
+gam.check(gam.3.0)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_3
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_3 ^ lambda - 1)/lambda ~ s(St) + Re + Fr, 
+                  data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.0 <- mean(rmse.cv.gam)
+
+# gam function with St:Re
+gam.3.1 <- gam((R_moment_3 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re), data = train.t)
+# model diagnostics
+gam.check(gam.3.1)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_3
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_3 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re), data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.1 <- mean(rmse.cv.gam)
+
+# gam function with St:Fr
+gam.3.2 <- gam((R_moment_3 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Fr), data = train.t)
+# model diagnostics
+gam.check(gam.3.2)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_3
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_3 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Fr), data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.2 <- mean(rmse.cv.gam)
+
+# gam function with Re:Fr
+gam.3.3 <- gam((R_moment_3 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + Re:Fr, 
+               data = train.t)
+# model diagnostics
+gam.check(gam.3.3)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_3
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_3 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + Re:Fr, 
+                  data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.3 <- mean(rmse.cv.gam)
+
+# gam function with St:Re, Re:Fr
+gam.3.4 <- gam((R_moment_3 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re) + Re:Fr, data = train.t)
+# model diagnostics
+gam.check(gam.3.4)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_3
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_3 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re) + Re:Fr, data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.4 <- mean(rmse.cv.gam)
+
+# gam function with St:Fr, Re:Fr
+gam.3.5 <- gam((R_moment_3 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Fr) + Re:Fr, data = train.t)
+# model diagnostics
+gam.check(gam.3.5)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_3
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_3 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Fr) + Re:Fr, data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.5 <- mean(rmse.cv.gam)
+
+# gam function with St:Fr, St:Re
+gam.3.6 <- gam((R_moment_3 ^ lambda - 1)/lambda ~ s(St) + Re+ Fr + 
+                   s(St, by = Fr) + s(St, by = Re), data = train.t)
+# model diagnostics
+gam.check(gam.3.6)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_3
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_3 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re) + s(St, by = Fr), data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.6 <- mean(rmse.cv.gam)
+
+# gam function with all the interaction terms
+gam.3.7 <- gam((R_moment_3 ^ lambda - 1)/lambda ~ s(St) + Re+ Fr + 
+                   s(St, by = Fr) + s(St, by = Re) + Re:Fr, data = train.t)
+# model diagnostics
+gam.check(gam.3.7)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_3
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_3 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re) + s(St, by = Re) + Re:Fr, data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.7 <- mean(rmse.cv.gam)
+
+# save the errors
+CV_errors.gam <- CV_errors.gam %>% 
+    add_row(Model.0 = cv.0, Model.1 = cv.1, Model.2 = cv.2, Model.3 = cv.3, 
+            Model.4 = cv.4, Model.5 = cv.5, Model.6 = cv.6, Model.7 = cv.7)
+```
+
+#### Fourth Moment
+
+```{r Fourth_Moment}
+# setting lambda
+lambda <- lambda.4
+
+# gam function with no interaction terms
+gam.4.0 <- gam((R_moment_4 ^ lambda - 1)/lambda ~ s(St) + Re + Fr, 
+               data = train.t)
+# model diagnostics
+gam.check(gam.4.0)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_4
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_4 ^ lambda - 1)/lambda ~ s(St) + Re + Fr, 
+                  data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.0 <- mean(rmse.cv.gam)
+
+# gam function with St:Re
+gam.4.1 <- gam((R_moment_4 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re), data = train.t)
+# model diagnostics
+gam.check(gam.4.1)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_4
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_4 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re), data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.1 <- mean(rmse.cv.gam)
+
+# gam function with St:Fr
+gam.4.2 <- gam((R_moment_4 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Fr), data = train.t)
+# model diagnostics
+gam.check(gam.4.2)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_4
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_4 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Fr), data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.2 <- mean(rmse.cv.gam)
+
+# gam function with Re:Fr
+gam.4.3 <- gam((R_moment_4 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + Re:Fr, 
+               data = train.t)
+# model diagnostics
+gam.check(gam.4.3)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_4
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_4 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + Re:Fr, 
+                  data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.3 <- mean(rmse.cv.gam)
+
+# gam function with St:Re, Re:Fr
+gam.4.4 <- gam((R_moment_4 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re) + Re:Fr, data = train.t)
+# model diagnostics
+gam.check(gam.4.4)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_4
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_4 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re) + Re:Fr, data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.4 <- mean(rmse.cv.gam)
+
+# gam function with St:Fr, Re:Fr
+gam.4.5 <- gam((R_moment_4 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Fr) + Re:Fr, data = train.t)
+# model diagnostics
+gam.check(gam.4.5)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_4
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_4 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Fr) + Re:Fr, data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.5 <- mean(rmse.cv.gam)
+
+# gam function with St:Fr, St:Re
+gam.4.6 <- gam((R_moment_4 ^ lambda - 1)/lambda ~ s(St) + Re+ Fr + 
+                   s(St, by = Fr) + s(St, by = Re), data = train.t)
+# model diagnostics
+gam.check(gam.4.6)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_4
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_4 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re) + s(St, by = Fr), data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.6 <- mean(rmse.cv.gam)
+
+# gam function with all the interaction terms
+gam.4.7 <- gam((R_moment_4 ^ lambda - 1)/lambda ~ s(St) + Re+ Fr + 
+                   s(St, by = Fr) + s(St, by = Re) + Re:Fr, data = train.t)
+# model diagnostics
+gam.check(gam.4.7)
+# 10-fold CV test error est
+for(i in 1:10){
+    #Segment your data by fold using the which() function 
+    testIndexes <- which(folds==i,arr.ind=TRUE)
+    testData <- shuffled_train[testIndexes, ]
+    y.test <- testData$R_moment_4
+    trainData <- shuffled_train[-testIndexes, ]
+   
+    #Use the test and train data
+    gam_cv <- gam((R_moment_4 ^ lambda - 1)/lambda ~ s(St) + Re + Fr + 
+                   s(St, by = Re) + s(St, by = Re) + Re:Fr, data = trainData)
+    pred_gam <- (lambda * predict(gam_cv, testData, type='response') + 1)^(1/lambda)
+    rmse.cv.gam[i] = mean((pred_gam - y.test)^2)
+}
+
+cv.7 <- mean(rmse.cv.gam)
+
+# save the errors
+CV_errors.gam <- CV_errors.gam %>% 
+    add_row(Model.0 = cv.0, Model.1 = cv.1, Model.2 = cv.2, Model.3 = cv.3, 
+            Model.4 = cv.4, Model.5 = cv.5, Model.6 = cv.6, Model.7 = cv.7)
+```
