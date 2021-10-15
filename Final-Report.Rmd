@@ -5,13 +5,12 @@ author: Conner Byrd, Eric Han, Ki Hyun, Sara Shao, Alex Shen, Mona Su, Dani Trej
 date: "10/12/2021"
 output:
   pdf_document: default
-  word_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,
-                     warning = FALSE,
-                     message = FALSE,
+                      warning= FALSE,
+                      message = FALSE,
                      fig.align = "center",
                      fig.width=5, 
                      fig.height=3)
@@ -29,8 +28,11 @@ Our key research objectives include understanding and predicting how turbulence 
 
 To do this, we began by doing some basic Exploratory Data Analysis on the three predictor variables: Reynolds number (`Re`), gravitational acceleration (`Fr`), and particle characteristic (`St`). (Our graphs are included in Appendix: Section 1)
 
-```{r}
+```{r, echo = FALSE}
 train <- read.csv('data-train.csv')
+train_data<- train %>%
+mutate(Re = as.ordered(Re)) %>%
+mutate(Fr = as.ordered(Fr))
 ```
 
 ## Methodology
@@ -108,13 +110,17 @@ For each moment, the following linear models were considered to vary complexity 
 ### Final Linear Model
 
 ```{r, echo = TRUE}
-lm1 <- lm((R_moment_1^lambda.1 - 1) / lambda.1 ~ St + Re + Fr + Fr*Re + St*Fr + Re*St, data = train_data)
+lm1 <- lm((R_moment_1^lambda.1 - 1) / 
+            lambda.1 ~ St + Re + Fr + Fr*Re + St*Fr + Re*St, data = train_data)
 summary(lm1)
-lm2 <- lm((R_moment_2^lambda.2 - 1) / lambda.2 ~ St + Re + Fr + Fr*Re + St*Fr + Re*St, data = train_data)
+lm2 <- lm((R_moment_2^lambda.2 - 1) / 
+            lambda.2 ~ St + Re + Fr + Fr*Re + St*Fr + Re*St, data = train_data)
 summary(lm2)$r.squared
-lm3 <- lm((R_moment_3^lambda.3 - 1) / lambda.3 ~ St + Re + Fr + Fr*Re + St*Fr + Re*St, data = train_data)
+lm3 <- lm((R_moment_3^lambda.3 - 1) / 
+            lambda.3 ~ St + Re + Fr + Fr*Re + St*Fr + Re*St, data = train_data)
 summary(lm3)$r.squared
-lm4 <- lm((R_moment_4^lambda.4 - 1) / lambda.4 ~ St + Re + Fr + Fr*Re + St*Fr + Re*St, data = train_data)
+lm4 <- lm((R_moment_4^lambda.4 - 1) / 
+            lambda.4 ~ St + Re + Fr + Fr*Re + St*Fr + Re*St, data = train_data)
 summary(lm4)$r.squared
 ```
 
@@ -225,7 +231,8 @@ mean(rmse.cv.lm)
 ### Figure 1.1: Distribution of St
 ```{r, echo = FALSE}
 ggplot(data = train, mapping = aes(x = St)) +
-  geom_histogram()
+  geom_histogram(fill="#9fc5e8" )+
+   theme_minimal()
 ```
 
 We will try using a log transform on the St variable since the distribution for the St variable is not normally distributed.
@@ -233,13 +240,17 @@ We will try using a log transform on the St variable since the distribution for 
 ### Figure 1.2: R Moments and Re Colored by Fr
 ```{r}
 scatter1 <- ggplot(data = train, mapping = aes(x = Re, y = R_moment_1, color = factor(Fr))) +
-  geom_point(show.legend = FALSE)
+  geom_point(show.legend = FALSE)+
+   theme_minimal()
 scatter2 <- ggplot(data = train, mapping = aes(x = Re, y = R_moment_2, color = factor(Fr))) +
-  geom_point()
+  geom_point()+
+   theme_minimal()
 scatter3 <- ggplot(data = train, mapping = aes(x = Re, y = R_moment_3, color = factor(Fr))) +
-  geom_point(show.legend = FALSE)
+  geom_point(show.legend = FALSE)+
+   theme_minimal()
 scatter4 <- ggplot(data = train, mapping = aes(x = Re, y = R_moment_4, color = factor(Fr))) +
-  geom_point()
+  geom_point()+
+   theme_minimal()
 
 (scatter1 + scatter2) / (scatter3 + scatter4)
 ```
@@ -247,16 +258,20 @@ scatter4 <- ggplot(data = train, mapping = aes(x = Re, y = R_moment_4, color = f
 ```{r}
 scatter5 <- ggplot(data = train, mapping = aes(x = St, y = R_moment_1, color = factor(Fr))) +
   geom_point(show.legend = FALSE) +
-  geom_smooth(method = lm, se = F, show.legend = FALSE)
+  geom_smooth(method = lm, se = F, show.legend = FALSE)+
+   theme_minimal()
 scatter6 <- ggplot(data = train, mapping = aes(x = St, y = R_moment_2, color = factor(Fr))) +
   geom_point() +
-  geom_smooth(method = lm, se = F)
+  geom_smooth(method = lm, se = F)+
+   theme_minimal()
 scatter7 <- ggplot(data = train, mapping = aes(x = St, y = R_moment_3, color = factor(Fr))) +
   geom_point(show.legend = FALSE) +
-  geom_smooth(method = lm, se = F, show.legend = FALSE)
+  geom_smooth(method = lm, se = F, show.legend = FALSE)+
+   theme_minimal()
 scatter8 <- ggplot(data = train, mapping = aes(x = St, y = R_moment_4, color = factor(Fr))) +
   geom_point() +
-  geom_smooth(method = lm, se = F)
+  geom_smooth(method = lm, se = F)+
+   theme_minimal()
 
 (scatter5 + scatter6) / (scatter7 + scatter8)
 ```
@@ -279,16 +294,20 @@ Because the linearity condition is not fulfilled in the above Residuals vs. Fitt
 ### Figure 2.5: Forward Selection With AIC On Linear Models
 
 ```{r, echo = TRUE}
-lm1 <- lm((R_moment_1^lambda.1 - 1) / lambda.1 ~ St + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+lm1 <- lm((R_moment_1^lambda.1 - 1) / 
+            lambda.1 ~ St + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
 step(lm1, direction = "forward")
 
-lm2 <- lm((R_moment_2^lambda.2 - 1) / lambda.2 ~ St + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+lm2 <- lm((R_moment_2^lambda.2 - 1) / 
+            lambda.2 ~ St + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
 #step(lm2, direction = "forward")
 
-lm3 <- lm((R_moment_3^lambda.2 - 1) / lambda.3  ~ St + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+lm3 <- lm((R_moment_3^lambda.2 - 1) / 
+            lambda.3  ~ St + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
 #step(lm3, direction = "forward")
 
-lm4 <- lm((R_moment_4^lambda.4 - 1) / lambda.4 ~ St + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
+lm4 <- lm((R_moment_4^lambda.4 - 1) / 
+            lambda.4 ~ St + Re + Fr + St*Fr + Fr*Re + St*Re, data = train_data)
 step(lm4, direction = "forward")
 ```
 
