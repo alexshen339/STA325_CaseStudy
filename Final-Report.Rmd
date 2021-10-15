@@ -24,9 +24,8 @@ library(patchwork)
 
 ## Introduction
 
-Our key research objectives include understanding and predicting how turbulence affects the dynamics of water droplets and ice crystals (how they collide and mix) in clouds. With our machine learning model, we are trying to infer the volume distribution of clusters within clouds.
+Our key research objectives include understanding and predicting how turbulence affects the dynamics of water droplets and ice crystals (how they collide and mix) in clouds. With our machine learning model, we are trying to infer the volume distribution of clusters within clouds. Our graphs have been included in the Appendix section of this report.
 
-To do this, we began by doing some basic Exploratory Data Analysis on the three predictor variables: Reynolds number (`Re`), gravitational acceleration (`Fr`), and particle characteristic (`St`). (Our graphs are included in Appendix: Section 1)
 
 ```{r, echo = FALSE}
 train <- read.csv('data-train.csv')
@@ -39,7 +38,7 @@ mutate(Fr = as.ordered(Fr))
 
 ### Initial Approach
 
-We decided at the beginning to treat Fr and Re as ordered factors. It seemed to make sense to treat Fr as a categorical variable because we are given only three unique values. In terms of prediction and inference, we believe our models can still be generalized to Fr and Re values similar to the ones we are working with.
+We decided at the beginning to treat `Fr` and `Re` as ordered factors. It seemed to make sense to treat Fr as a categorical variable because we are given only three unique values. In terms of prediction and inference, we believe our models can still be generalized to `Fr` and `Re` values similar to the ones we are working with.
 
 ```{r, echo = TRUE}
 first_lm_R1 <- lm(R_moment_1 ~ St + Re + Fr, data = train_data)
@@ -50,19 +49,19 @@ summary(first_lm_R1)$r.squared
 summary(first_lm_R4)$r.squared
 ```
 
-We decided to initially fit the most basic linear model  with all three predictors to see what it would look like. The model for the first moment had a fairly high $R^2$ value (0.929), but the model for the fourth moment had a much lower $R^2$ value (0.425). Additionally, in our diagnostic plots (see Appendix: Section 2), we saw a pattern in the residuals vs fitted values plots where the models would consistently under predict in some areas and over predict in others, indicating non-linearity. In addition, looking at the Normal Q-Q plots, the normality assumption also seemed to be violated for higher moments. This is consistent with the fact that our histogram of St in our EDA was not normally distributed. 
+We decided to initially fit the most basic linear model  with all three predictors to see what it would look like. The model for the first moment had a fairly high $R^2$ value (0.929), but the model for the fourth moment had a much lower $R^2$ value (0.425). Additionally, in our diagnostic plots (see Appendix: Section 2), we saw a pattern in the residuals vs. fitted values plots where the models would consistently under predict in some areas and over predict in others, indicating non-linearity. In addition, looking at the Normal Q-Q plots, the normality assumption also seemed to be violated for higher moments. This is consistent with the fact that our histogram of `St` in our EDA was not normally distributed. 
 
-This information lead us to try using a GAM to model the relationship between the predictors and the 4 moments due to the increased flexbility GAMs provide. However, we knew that using GAMs made interpretability an issue, because interpreting a complex smooth function of a continuous predictor is very hard. 
+This information lead us to try using a GAM to model the relationship between the predictors and the 4 moments due to the increased flexbility GAMs provide. However, we knew that using GAMs made interpretability an issue, because interpreting a complex smooth function of a continuous predictor is very difficult 
 
 ### Variable transformation
 As a result, we decided to use variable transformations and include interaction effects to make linear models with suitable model diagnostics for all 4 moments for the purpose of inference. To decide how to apply variable transformations, we observed the predictor and response variables, took a deeper look at the purpose of the study, and found three main problems.
 
-1. Just converting Fr, and Re into categorical values may result in losing information as the exact numerical value could have high relationship with the moments. Furthermore, this model should be used later to predict behaviors of particles in environments with higher Re values.
-2. The scale of Fr, St, and Re differs from each other. Fr ranges $[0, \infty)$, while St is $[0, 3]$. Furthermore, in real world, Re could be in the scale of $10^7$.
+1. Just converting `Fr`, and `Re` into categorical values may result in losing information as the exact numerical value could have high relationship with the moments. Furthermore, this model should be used later to predict behaviors of particles in environments with higher Re values.
+2. The scale of `Fr`, `St`, and `Re` differs from each other. `Fr` ranges $[0, \infty)$, while `St` is $[0, 3]$. Furthermore, in the real world, `Re` could be in the scale of $10^7$.
 3. The response variables (moments) are heavily skewed. For example, for the 4th moment, some response variables are at the scale of $10^{-10}$, while some are at the scale of $10^{10}$
 
-As a result, we considered transformations on the potential predictor variables. For Froude number (Fr), a monotonic transformation of $1 - e^{-Fr}$ was made to change the range from $[0, \infty)$ to $[0, 1]$.
-For Stokes number (St), as shown in the EDA, log transformation was undertaken to address the skewness. For Reynolds number (Re), not only is the actual value in practice much larger than the given training data, but also within the training data itself, Reynolds number was much greater in scale. To address the difference in scale, log transformation was also made on Reynolds number.
+As a result, we considered transformations on the potential predictor variables. For Froude number (`Fr`), a monotonic transformation of $1 - e^{-Fr}$ was made to change the range from $[0, \infty)$ to $[0, 1]$.
+For Stokes number (`St`), as shown in the EDA (see Appendix: Section 1), log transformation was undertaken to address the skewness. For Reynolds number (`Re`), not only is the actual value in practice much larger than the given training data, but also within the training data itself, Reynolds number was much greater in scale. To address the difference in scale, log transformation was also made on Reynolds number.
 ```{r, echo = TRUE}
 train_data <- train %>% 
     mutate(
@@ -72,9 +71,9 @@ train_data <- train %>%
     )
 ```
 
-Transformation on the response variable also needed to take place before fitting the models. For the four moments, we have considered box-cox transformation to normalize the variables and adjust for the difference in scale. As the EDA shows, the response variables have a skewed distribution. Thus, first, normalization was needed for the four moments. Moreover, the scale of the response variable becomes extremely larger as the order of the moments increase. (4th moment would have approximately to the power of 4 scale of the 1st moment) Hence, second, adjustments for scale were needed for the four moments. Box-cox transformation performs normalization and adjusts the scale of variables: apt for our response variable transformation.
+Transformation on the response variable also needed to take place before fitting the models. For the four moments, we have considered box-cox transformation to normalize the variables and adjust for the difference in scale. As the EDA shows (see Appendix: Section 1), the response variables have a skewed distribution. Thus, first, normalization was needed for the four moments. Moreover, the scale of the response variable becomes extremely larger as the order of the moments increase. (4th moment would have approximately to the power of 4 scale of the 1st moment) Hence, second, adjustments for scale were needed for the four moments. Box-cox transformation performs normalization and adjusts the scale of variables: apt for our response variable transformation.
 
-However, the $\lambda$ for box-cox transformation needed to be specified for each of the four moments. We have calculated and speficied the four different lambdas as the maximum log-likelihood estimate as below.
+However, the $\lambda$ for box-cox transformation needed to be specified for each of the four moments. We have calculated and specified the four different lambdas as the maximum log-likelihood estimate as below.
 
 ```{r, echo = TRUE}
 lambda.1 = -0.0202
@@ -87,9 +86,9 @@ lambda.4 = -0.0606
 For linear model, we tried doing forward selection with AIC to see if we could select a simpler model in case were overfitting, but our resulting models were the same as our input models (see Appendix: Section 2). We would also compare our final linear models with 4 GAM models (one for each moment) using 10-fold CV in order to find the best models for prediction. 
 
 ### Cross Validation
-For each moments, we considered various combinations of predictor variables and interactions of the transformed variables. In order to compare the models and choose the most optimal ones, we used 10-fold cross validation to estimate the test error. A major reason for choosing cross validation was that cross validation can provide a direct estimate for the test estimate, even when we do not have a clear picture of the noises of the variables. Furthermore, it is less likely to result in overfitting compared to LOOCV, and computationally more feasible.
+For each moment, we considered various combinations of predictor variables and interactions of the transformed variables. In order to compare the models and choose the most optimal ones, we used 10-fold cross validation to estimate the test error. A major reason for choosing cross validation was that cross validation can provide a direct estimate for the test estimate, even when we do not have a clear picture of the noises of the variables. Furthermore, it is less likely to result in overfitting compared to LOOCV, and computationally more feasible.
 
-To perform a valid 10-fold cross validation, we first shuffled the training dataset to ensure that similar data do not tend to be included in the same fold. Then, we divided the training dataset into 10 folds and used the same folds to perform cross validation and obtain estimated test error for each model. Below is how the folds were created.
+To perform a valid 10-fold cross validation, we first shuffled the training dataset to ensure that similar data do not tend to be included in the same fold. Then, we divided the training dataset into 10 folds and used the same folds to perform cross validation and obtain estimated test error for each model. Below shows how the folds were created.
 
 ```{r, echo = TRUE}
 set.seed(3736)
@@ -100,10 +99,14 @@ folds <- cut(seq(1,nrow(train_data)),breaks=10,labels=FALSE)
 At each fold, the validation set (8~9 data points for each fold) was reserved, and the other points were used to train a model. Then, the model was used to test on the validation set. RMSE was then calculated at each fold and the mean RSME was then calculated to compare the estimated test error with other model candidates. For each moment, the model with the lowest estimated test error was selected.
 
 For each moment, the following linear models were considered to vary complexity and explore various possibilities: 
-1. GAM model without interaction
-2. GAM models with one interaction term on each combination of predictor variables
-3. GAM models with two interaction terms
-4. GAM model with all possible interaction terms
+
+  1. GAM model without interaction
+  
+  2. GAM models with one interaction term on each combination of predictor variables
+  
+  3. GAM models with two interaction terms
+  
+  4. GAM model with all possible interaction terms
 
 ## Results
 
@@ -124,11 +127,11 @@ lm4 <- lm((R_moment_4^lambda.4 - 1) /
 summary(lm4)$r.squared
 ```
 
-All three of our main predictors: Fr, St, and Re, seem to be significant predictors of the R moments. A one percent increase in Stokes number is associated with 0.146% increase in R moment 1, holding all other predictors constant. When the Reynolds number is 224, the R moment 1 is expected to decrease by 403% from when the Reynolds number is 90, holding all other predictors constant. When the Reynolds number is 398, the R moment 1 is expected to increase by 64% compared to when the Reynolds number is 90. 
+All three of our main predictors: `Fr`, `St`, and `Re`, seem to be significant predictors of the R moments. A one percent increase in Stokes number is associated with 0.146% increase in R moment 1, holding all other predictors constant. When the Reynolds number is 224, the R moment 1 is expected to decrease by 403% from when the Reynolds number is 90, holding all other predictors constant. When the Reynolds number is 398, the R moment 1 is expected to increase by 64% compared to when the Reynolds number is 90. 
 
-The interaction terms Fr\*St and Re\*Fr seem to be significant as well. This is consistent with what we expected from our EDA. When Fr is 0.3, the relationship between R moment 1 and St is positive, however, when Fr is infinity, the relationship between R moment 1 and St is negative. Additionally, we see that when the Froud number is 0.3 and the Reynolds number is 224, the R moment 1 is expected to be an additional 24% lower compared to when either of those conditions are not met.
+The interaction terms `Fr*St` and `Re*Fr` seem to be significant as well. This is consistent with what we expected from our EDA. When `Fr` is 0.3, the relationship between R moment 1 and St is positive, however, when `Fr` is infinity, the relationship between R moment 1 and `St` is negative. Additionally, we see that when `Fr` is 0.3 and the Reynolds number is 224, the R moment 1 is expected to be an additional 24% lower compared to when either of those conditions are not met.
 
-What these results mean for the research question is that Reynolds number (`Re`), gravitational acceleration (`Fr`), and particle characteristic (`St`) all predict cluster formation in clouds to some degree, even after accounting for the effects of each of the other variables. We can also conclude that direction of the relationship between cluster density and Stokes number is different based on what the Froud number is.
+What these results mean for the research question is that Reynolds number (`Re`), gravitational acceleration (`Fr`), and particle characteristic (`St`) all predict cluster formation in clouds to some degree, even after accounting for the effects of each of the other variables. We can also conclude that direction of the relationship between cluster density and Stokes number is different based on what the gravitational acceleration is.
 
 #### Predicted Test Error For R Moments 1-4 With Linear Model
 
