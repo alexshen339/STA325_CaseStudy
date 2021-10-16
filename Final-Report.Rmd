@@ -927,8 +927,7 @@ if it brings more prediction power.
 Comparing the estimated testing error between the 4 final LM models and the 
 4 final GAM models using 10-fold CV yielded that for the first moment the GAM
 model is preferred. For the second, third, and fourth moments, the linear models
-were preferred. The table for the estimated test errors for each moment across 
-final LM and GAM models are shown in Appendix Firgure 3.10
+were preferred. 
 
 ## Appendix
 
@@ -1061,5 +1060,3 @@ plot(lm4, 1:2)
 ```{r}
 CV_errors.gam
 ```
-
-### Figure 3.10: 10-fold CV Test Error estimates LM vs. GAM
